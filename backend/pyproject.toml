@@ -8,7 +8,7 @@ version = "0.1.0"
 description = "Game_C 游戏日历后端：多用户 REST API（SteamID 认证 + 每日采集 + 日历聚合）"
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "UNLICENSED" }
+license = { text = "MIT" }
 authors = [{ name = "Game_C" }]
 keywords = ["steam", "calendar", "fastapi", "game"]
 dependencies = [

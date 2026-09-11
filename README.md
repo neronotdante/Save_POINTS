@@ -1,5 +1,10 @@
 # Save Point（Game_C 游戏日历）
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB.svg)](https://www.python.org/downloads/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey.svg)](#1-需要准备什么)
+[![Self-hosted](https://img.shields.io/badge/Self--hosted-local%20only-0E9E68.svg)](#7-密钥与安全)
+
 把你的 Steam 购买、首次启动、成就解锁和当时的截图，放回同一条横向时间轴上。
 
 自托管、单机、本地数据：登录 Steam 后，后端用**你自己的 Web API Key** 每天拉一次数据存进本机 SQLite，浏览器打开 `http://127.0.0.1:8000/` 看时间轴。没有账号系统，不上传任何东西到第三方。
@@ -19,6 +24,7 @@
 7. [密钥与安全](#7-密钥与安全)
 8. [常见问题](#8-常见问题)
 9. [开发者入口](#9-开发者入口)
+10. [许可证](#10-许可证)
 
 ---
 
@@ -36,7 +42,13 @@
 
 ## 2. 第一次运行
 
-1. 下载或 clone 本仓库到任意目录，路径里**不要有中文或空格**（Python 虚拟环境对此不稳）。
+1. 把仓库放到任意目录，路径里**不要有中文或空格**（Python 虚拟环境对此不稳）：
+
+   ```bash
+   git clone https://github.com/neronotdante/Save_POINTS.git
+   ```
+
+   没装 Git 也可以在 [仓库页面](https://github.com/neronotdante/Save_POINTS) 点 **Code → Download ZIP** 后解压。
 2. 双击仓库根目录的 **`run.cmd`**。
    - 首次会创建 `backend/.venv` 并安装依赖，约 1 到 3 分钟。
    - 之后每次直接起后端，就绪后自动打开浏览器到 `http://127.0.0.1:8000/`。
@@ -188,3 +200,39 @@ python timeline/serve.py 5173     # 后端 CORS 白名单已放行 5173
 - 产品与设计文档（Obsidian 库）：[`GAMEC/`](GAMEC/README.md)
 - 测试：`cd backend && pytest`
 - `game-calendar/` 是已归档的旧 Electron 月历原型，与当前时间轴无关。
+
+### 仓库结构
+
+```
+Save_POINTS/
+├── run.cmd              一键启动：建 venv → 装依赖 → 起后端 → 开浏览器
+├── backend/             FastAPI 后端，同时托管前端静态文件
+│   ├── app/
+│   │   ├── api/         REST 路由（认证、同步、时间轴聚合、设置）
+│   │   ├── core/        配置加载、加密、限流等基础设施
+│   │   ├── models/      SQLAlchemy 数据模型
+│   │   ├── schemas/     Pydantic 请求/响应模型
+│   │   ├── services/    Steam 采集、封面取色、聚合等业务逻辑
+│   │   └── tasks/       每日同步定时任务
+│   ├── alembic/         数据库迁移
+│   ├── scripts/         运维脚本（绑 Key、重算等）
+│   ├── sidecar/         可选的 Node 登录侧车（购买历史，未接入界面）
+│   ├── tests/           pytest 测试
+│   └── .env.example     全部配置项及说明
+├── timeline/            前端：原生 ES Modules，无构建步骤
+│   ├── index.html
+│   ├── app.js           入口与路由
+│   ├── timeline.js      横向时间轴主视图
+│   ├── lib/             布局、取色、灯箱、存储等模块
+│   └── docs/            前端开发规范
+├── GAMEC/               产品与设计文档（Obsidian 库）
+└── game-calendar/       已归档的旧 Electron 月历原型
+```
+
+运行时生成、**不进仓库**的文件：`backend/.venv/`、`backend/game_c.db*`、`backend/fernet.key`、`backend/.env`。
+
+## 10. 许可证
+
+本项目以 [MIT 许可证](LICENSE) 发布，你可以自由使用、修改和分发，保留版权声明即可。
+
+本项目与 Valve Corporation 无关联，不隶属于 Steam。所有游戏数据经由 Steam 官方 Web API 获取，归各自权利人所有。
