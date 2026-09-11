@@ -1,0 +1,32 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: gamec
+      POSTGRES_PASSWORD: gamec
+      POSTGRES_DB: game_c
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gamec -d game_c"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: .
+    environment:
+      GC_DATABASE_URL: postgresql+psycopg://gamec:gamec@db:5432/game_c
+      GC_SECRET_KEY: change-me-in-prod
+      GC_AUTO_CREATE_TABLES: "false"
+      GC_CORS_ORIGINS: '["*"]'
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:

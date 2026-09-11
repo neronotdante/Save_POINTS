@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Save Point · 横向时间轴</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+<!-- 首启（05§8：未登录引导 + 登录后同步进度，两态各一块） -->
+<section id="view-first-run" class="view"></section>
+
+<!-- 时间轴主视图（07§4，唯一常驻视图） -->
+<section id="view-timeline" class="view" hidden>
+  <header id="timeline-header">
+    <!-- 时间读数（07 V1）：年份弱化 + 当前月份强调 -->
+    <div class="tsclock" id="timeline-clock" role="status">
+      <span class="ctx">—</span><span class="sep" aria-hidden="true">.</span><span class="hit">—</span>
+    </div>
+    <div class="controls">
+      <button class="iconbtn" id="prev-btn" aria-label="上一屏"></button>
+      <button class="iconbtn" id="next-btn" aria-label="下一屏"></button>
+      <!-- 无档缩放（07§4.6a）：日 / 周 / 月三段切换器与 −/+ 缩放条都已移除，
+           缩放只走 Ctrl + 滚轮（锚在指针上） -->
+      <button class="iconbtn" id="toggle-overview" aria-pressed="true" aria-label="全景导航条"></button>
+      <button class="iconbtn" id="toggle-orient" aria-pressed="false" aria-label="时间轴方向"></button>
+      <button class="iconbtn" id="toggle-minimal" aria-pressed="false" aria-label="屏蔽截图缩略图与面板"></button>
+      <button class="iconbtn" id="toggle-ach" aria-pressed="false" aria-label="隐藏成就"></button>
+      <!-- 导出长图（07§4.11）：按当前过滤规则把整条轴拍成一张 PNG，方向在面板里选 -->
+      <button class="iconbtn" id="export-btn" aria-label="导出长图"></button>
+    </div>
+  </header>
+
+  <div id="timeline-body">
+    <div id="timeline-track"></div>
+    <div class="mid-guide" aria-hidden="true"></div>
+    <div class="edge-hint left" aria-hidden="true"></div>
+    <div class="edge-hint right" aria-hidden="true"></div>
+    <div id="panel-root"></div>
+  </div>
+
+  <footer id="timeline-footer">
+    <div class="sync-status">
+      <div class="dot" id="sync-dot" style="background:var(--text-1)"></div>
+      <div class="mono caption" id="sync-stamp">LAST SYNC —</div>
+      <span class="mode-badge" id="mode-badge" hidden>MOCK</span>
+    </div>
+  </footer>
+
+  <!-- 设置入口（07 V1）：右下角浮动，不占页脚 -->
+  <button class="gear" id="open-settings" aria-label="打开设置"></button>
+</section>
+
+<!-- 设置（05§8：全屏替换，账号/同步/数据三组） -->
+<section id="view-settings" class="view" hidden></section>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>

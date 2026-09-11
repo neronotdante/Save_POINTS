@@ -1,0 +1,122 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg-fallback:#EEF1F6; --panel-ref:#F2F4F8; --accent:#2F6BFF; --accent-ink:#FFFFFF;
+      --divider:rgba(15,23,42,.08); --hover:rgba(15,23,42,.05);
+      --text-1:#17202E; --text-2:rgba(23,32,46,.62); --text-3:rgba(23,32,46,.50); --text-muted:rgba(23,32,46,.30);
+      --ev-release:#2F6BFF; --ev-purchase:#0E9E68; --ev-achieve-fallback:#6D4AE0;
+      --axis:rgba(15,23,42,.16); --stem:rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;width:1440px;height:900px;background:var(--bg-fallback);color:var(--text-1);
+      font-family:"Noto Sans SC","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+    a{color:#2F6BFF;text-decoration:none;} a:hover{color:#1B4FD8;}
+    .num{font-family:"Space Grotesk",system-ui,sans-serif;}
+    .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;}
+    .label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .caption{font-size:11px;line-height:1.5;font-weight:400;color:var(--text-3);}
+    .body-text{font-size:13.5px;line-height:1.5;font-weight:500;}
+    .board-label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .start-btn{height:44px;border-radius:999px;padding:0 22px;background:var(--accent);color:var(--accent-ink);
+      font-family:inherit;font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:8px;
+      box-shadow:0 6px 20px rgba(47,107,255,.30),inset 0 1px 0 rgba(255,255,255,.40);border:none;cursor:pointer;}
+    .start-btn:hover{background:#1B4FD8;}
+    .start-ghost{height:30px;border-radius:999px;padding:0 14px;background:rgba(255,255,255,.30);
+      border:1px solid rgba(15,23,42,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.9);
+      display:inline-flex;align-items:center;font-size:13.5px;font-weight:500;color:var(--text-1);cursor:pointer;
+      flex:none;white-space:nowrap;}
+    .start-ghost:hover{background:rgba(255,255,255,.55);}
+    /* 登录失败 / 后端不可达：原因直接摆在入口上，不弹窗——弹窗会挡住页面且带不走上下文 */
+    .entry-error{max-width:520px;padding:10px 12px;border-radius:10px;white-space:pre-line;
+      background:rgba(163,48,85,.08);color:#A33055;box-shadow:inset 0 0 0 .5px rgba(163,48,85,.20);
+      font-family:"JetBrains Mono",ui-monospace,monospace;font-size:11px;line-height:1.6;}
+    .text-input{height:38px;padding:0 12px;font-size:12px;border-radius:10px;
+      border:1px solid rgba(15,23,42,.10);background:rgba(255,255,255,.45);color:var(--text-1);
+      font-family:"JetBrains Mono",ui-monospace,monospace;width:100%;}
+    /* 同步活跃指示的两态对照，取值与 FirstRun 同源 */
+    .sync-bar{position:relative;height:5px;border-radius:999px;background:rgba(15,23,42,.10);}
+    .sync-bar .fill{position:relative;height:5px;border-radius:999px;background:var(--accent);
+      overflow:hidden;transition:width .12s linear;}
+    .sync-bar .fill::after{content:"";position:absolute;inset:0;
+      background:repeating-linear-gradient(115deg,rgba(255,255,255,.34) 0 6px,rgba(255,255,255,0) 6px 14px);
+      background-size:28px 100%;animation:sync-flow 1.1s linear infinite;}
+    .sync-bar .head{position:absolute;top:-2px;width:2px;height:9px;border-radius:1px;
+      background:var(--accent);box-shadow:0 0 0 3px rgba(47,107,255,.16),0 0 10px rgba(47,107,255,.55);
+      animation:sync-pulse 1.6s ease-in-out infinite;}
+    @keyframes sync-flow{to{background-position:28px 0;}}
+    @keyframes sync-pulse{0%,100%{opacity:1;}50%{opacity:.42;}}
+    .sync-bar.stalled .fill{background:var(--text-3);}
+    .sync-bar.stalled .fill::after{animation:none;opacity:0;}
+    .sync-bar.stalled .head{animation:none;background:var(--text-3);box-shadow:none;}
+    @media (prefers-reduced-motion:reduce){
+      .sync-bar .fill::after,.sync-bar .head{animation:none;}
+    }
+    .specimen{position:absolute;top:600px;width:600px;display:flex;flex-direction:column;gap:12px;}
+    .specimen .row{display:flex;align-items:center;gap:10px;}
+    .col{position:absolute;top:150px;width:600px;display:flex;flex-direction:column;gap:20px;}
+    .col .num{font-size:44px;line-height:.92;font-weight:600;letter-spacing:-.02em;}
+  </style>
+</helmet>
+<div style="position:relative;width:1440px;height:900px;overflow:hidden;">
+
+  <div class="board-label" style="position:absolute;left:80px;top:104px;">STATE &#183; 登录失败 / 后端不可达</div>
+  <div class="col" data-od-id="entry-error-state" style="left:80px;">
+    <div class="num">Save Point</div>
+    <div style="font-size:13.5px;font-weight:500;line-height:1.8;color:var(--text-2);max-width:520px;">登录 Steam 后，购买、首次启动、成就解锁与当时的截图会落在同一条时间轴上。数据留在本机，仅首次需要全量同步。</div>
+    <div class="entry-error" data-od-id="entry-error">无法连接后端 http://127.0.0.1:8000（后端未启动或 CORS 未放行）
+请先启动后端：cd backend &amp;&amp; 启动后端.cmd</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a class="start-btn" href="FirstRun.dc.html">登录 Steam</a>
+      <a class="start-ghost" href="FirstRun.dc.html">导入本地备份</a>
+      <a class="start-ghost" href="#">已有 token</a>
+    </div>
+    <div class="mono" style="font-size:11px;color:var(--text-3);padding-left:4px;">NO SIGNUP &#183; DATA STAYS LOCAL</div>
+  </div>
+
+  <div class="board-label" style="position:absolute;left:760px;top:104px;">STATE &#183; 手动接入（已有 token）</div>
+  <div class="col" data-od-id="entry-token-state" style="left:760px;">
+    <div class="num">Save Point</div>
+    <div style="font-size:13.5px;font-weight:500;line-height:1.8;color:var(--text-2);max-width:520px;">粘贴后端签发的 opaque token（登录回调页 JSON 里的 token 字段）。</div>
+    <div style="display:flex;flex-direction:column;gap:8px;max-width:520px;">
+      <input class="text-input" data-od-id="token-base" value="http://127.0.0.1:8000" aria-label="后端地址">
+      <input class="text-input" data-od-id="token-value" value="" placeholder="token" aria-label="token">
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <a class="start-btn" href="Month.dc.html">连接后端</a>
+      <a class="start-ghost" href="#">重新登录</a>
+      <a class="start-ghost" href="FirstRun.dc.html">返回</a>
+    </div>
+    <div class="mono" style="font-size:11px;color:var(--text-3);padding-left:4px;">连接成功（尚未绑定 API Key，同步会失败，可先看已有数据）</div>
+  </div>
+
+  <div class="board-label" style="position:absolute;left:80px;top:540px;">同步活跃指示 &#183; 两态对照</div>
+  <div class="caption" style="position:absolute;left:80px;top:562px;width:1280px;line-height:1.7;">首次同步要跑几十分钟，而后端只有 <span class="mono">owned_games</span> 阶段每 10 款推一次进度，<span class="mono">achievements</span> / <span class="mono">screenshots</span> 全程静默、只在结束时推一次 <span class="mono">done</span>——那几分钟里进度条一动不动，和卡死没有观感区别。所以给两个与「具体进度」无关、但只要链路活着就一定在动的信号：斜纹持续流动 + 条尾推进头呼吸，外加每秒走一格的 ELAPSED。<b>关键是它们会停</b>：SSE 断开或报错时立刻停住并转灰。一个永远在动的装饰动画什么也没说，会停的动画才是信号。</div>
+
+  <div class="specimen" data-od-id="sync-alive" style="left:80px;">
+    <div class="row"><div class="body-text" style="flex:1 1 auto;">正在回填成就</div><div class="mono caption">148 / 537</div></div>
+    <div class="sync-bar"><div class="fill" style="width:46%;"></div><div class="head" style="left:46%;"></div></div>
+    <div class="row"><div class="mono caption" style="flex:1 1 auto;">链路正常 &#183; 斜纹流动 + 推进头呼吸</div><div class="mono caption">ELAPSED 07:24</div></div>
+  </div>
+
+  <div class="specimen" data-od-id="sync-stalled" style="left:760px;">
+    <div class="row"><div class="body-text" style="flex:1 1 auto;">同步中断</div><div class="mono caption">148 / 537</div></div>
+    <div class="sync-bar stalled"><div class="fill" style="width:46%;"></div><div class="head" style="left:46%;"></div></div>
+    <div class="row"><div class="mono caption" style="flex:1 1 auto;">SSE 断开 / 报错 &#183; 动画停住并转灰</div><div class="mono caption">ELAPSED 07:24</div></div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

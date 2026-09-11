@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+  <title>游戏日历</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="panel glass-l2">
+    <div class="drag-band" aria-hidden="true"></div>
+
+    <header class="month-head">
+      <div class="month-title">
+        <span class="num" id="month-num">8</span>
+        <span class="zh">月</span>
+        <span class="year" id="month-year">2026</span>
+      </div>
+      <div class="nav">
+        <button class="icon-btn" id="btn-prev" type="button" aria-label="上一月">
+          <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button class="icon-btn" id="btn-next" type="button" aria-label="下一月">
+          <svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="month-strip">
+      <div class="pills" id="pills"></div>
+    </div>
+
+    <div class="weekdays" id="weekdays"></div>
+
+    <div class="grid" id="grid"></div>
+
+    <footer class="statusbar">
+      <div class="sync">
+        <span class="dot" id="sync-dot"></span>
+        <span class="label" id="sync-label">上次同步 --</span>
+      </div>
+      <button class="icon-btn gear" id="btn-gear" type="button" aria-label="设置" title="设置（暂未实现）">
+        <svg viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06A1.65 1.65 0 0 0 15 19.4a1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9c.14.5.6.86 1.12.9H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+      </button>
+    </footer>
+
+    <!-- 日详情浮层（L3 sheet，UI 规范 §8.2）。始终在 DOM 里，靠 .open 控制升降 -->
+    <div class="sheet-layer" id="sheet-layer" aria-hidden="true">
+      <div class="sheet-mask" id="sheet-mask"></div>
+      <section class="sheet glass-l3" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-date-num" tabindex="-1">
+        <header class="sheet-head">
+          <div class="sheet-date">
+            <span class="num" id="sheet-date-num"></span>
+            <span class="cap" id="sheet-date-cap"></span>
+          </div>
+          <div class="metrics" id="sheet-metrics"></div>
+        </header>
+        <div class="sheet-rows" id="sheet-rows"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="mock-data.js"></script>
+  <script src="calendar.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg-fallback:#EEF1F6; --panel-ref:#F2F4F8; --accent:#2F6BFF; --accent-ink:#FFFFFF;
+      --divider:rgba(15,23,42,.08); --hover:rgba(15,23,42,.05);
+      --text-1:#17202E; --text-2:rgba(23,32,46,.62); --text-3:rgba(23,32,46,.50); --text-muted:rgba(23,32,46,.30);
+      --ev-release:#2F6BFF; --ev-purchase:#0E9E68; --ev-achieve-fallback:#6D4AE0;
+      --axis:rgba(15,23,42,.16); --stem:rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;width:1440px;height:900px;background:var(--bg-fallback);color:var(--text-1);
+      font-family:"Noto Sans SC","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+    a{color:#2F6BFF;} a:hover{color:#1B4FD8;}
+    .num{font-family:"Space Grotesk",system-ui,sans-serif;}
+    .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;}
+    .label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .dot{width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(15,23,42,.14);}
+    .tsclock{display:flex;align-items:baseline;font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+      font-variant-numeric:tabular-nums;}
+    .tsclock .ctx{font-size:26px;font-weight:400;color:rgba(23,32,46,.56);letter-spacing:.02em;}
+    .tsclock .sep{margin:0 5px;font-size:20px;color:rgba(23,32,46,.40);}
+    .tsclock .hit{font-size:44px;font-weight:500;color:var(--text-1);letter-spacing:.01em;}
+    .gear{width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.45);
+      border:1px solid rgba(15,23,42,.10);box-shadow:0 2px 10px rgba(15,23,42,.08),inset 0 1px 0 rgba(255,255,255,.9);
+      display:flex;align-items:center;justify-content:center;color:var(--text-2);text-decoration:none;cursor:pointer;
+      transition:background .16s ease,color .16s ease,box-shadow .16s ease;}
+    .gear svg{transition:transform .5s cubic-bezier(.2,.8,.2,1);}
+    .gear:hover{background:var(--accent);color:#fff;box-shadow:0 6px 18px rgba(47,107,255,.38);}
+    .gear:hover svg{transform:rotate(35deg);}
+    .gear:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+    .gear::after{content:"设置";position:absolute;left:50%;bottom:calc(100% + 10px);
+      padding:5px 9px;border-radius:8px;background:rgba(23,32,46,.92);color:#fff;
+      font-family:"Noto Sans SC","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+      font-size:11.5px;font-weight:500;letter-spacing:.02em;line-height:1.4;white-space:nowrap;
+      opacity:0;transform:translate(-50%,4px);transition:opacity .16s ease,transform .16s ease;
+      pointer-events:none;}
+    .gear:hover::after{opacity:1;transform:translate(-50%,0);}
+    .seg{height:38px;border-radius:999px;background:rgba(255,255,255,.55);border:1px solid rgba(15,23,42,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 1px 3px rgba(15,23,42,.05);
+      display:flex;align-items:center;padding:3px;gap:2px;}
+    .seg>div{min-width:52px;height:30px;padding:0 14px;border-radius:999px;display:flex;align-items:center;justify-content:center;
+      font-size:13.5px;font-weight:500;letter-spacing:.06em;color:rgba(23,32,46,.74);cursor:pointer;
+      transition:background .16s ease,color .16s ease,box-shadow .16s ease;}
+    .seg>div:hover{background:rgba(255,255,255,.85);color:#17202E;}
+    .seg>div.on{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(47,107,255,.32),inset 0 1px 0 rgba(255,255,255,.28);}
+    .seg>div.on:hover{background:#527EF5;color:#fff;}
+    .seg>div:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+    /* 平移按钮（与档位切换器同排）。滚轮行为见下方 .edge-hint 注释。 */
+    .iconbtn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.30);
+      border:1px solid rgba(15,23,42,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.90);
+      display:flex;align-items:center;justify-content:center;color:var(--text-2);cursor:pointer;padding:0;
+      transition:background .15s ease,color .15s ease;}
+    .iconbtn:hover{background:rgba(255,255,255,.65);color:var(--text-1);}
+    .iconbtn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+    /* 边缘提示带：左右各一条，常驻。
+       轴的平移有三条路子——点两侧的平移按钮、直接滚轮（无需按住 Ctrl）、
+       或把指针停在这条带子上 ~150ms 后自动滚动；Ctrl + 滚轮则是换档（日/周/月）。 */
+    .edge-hint{position:absolute;top:96px;bottom:34px;width:64px;pointer-events:none;
+      display:flex;align-items:center;justify-content:center;color:var(--text-3);
+      background:linear-gradient(270deg,rgba(15,23,42,.07),rgba(15,23,42,0));}
+    .edge-hint.left{left:0;transform:scaleX(-1);}
+    .edge-hint.right{right:0;}
+    /* 环境标识：常驻底栏，非 LIVE 一律中性灰（05 §8.1） */
+    .mode-badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      line-height:1;padding:4px 8px;border-radius:999px;flex:none;
+      background:rgba(47,107,255,.12);color:var(--accent);}
+    .mode-badge.neutral{background:rgba(15,23,42,.06);color:var(--text-2);}
+    .shot{width:96px;height:54px;border-radius:8px;box-shadow:inset 0 0 0 .5px rgba(15,23,42,.14);}
+    .axis{position:absolute;left:0;right:0;top:480px;height:1px;background:var(--axis);}
+    .mid{position:absolute;left:720px;top:96px;bottom:34px;width:1px;background:rgba(15,23,42,.05);}
+    /* ---- 悬浮演示卡（日档 Shelved）：封面轮播 + 点击放大灯箱 ---- */
+    .cover-frame{position:relative;overflow:hidden;cursor:zoom-in;outline:none;-webkit-tap-highlight-color:transparent;}
+    .cover-frame:focus-visible{outline:2px solid var(--accent);outline-offset:3px;}
+    .cover-frame:hover{box-shadow:0 0 0 1.5px rgba(23,32,46,.28),0 6px 14px rgba(23,32,46,.12);}
+    .cover-track{display:flex;height:100%;transition:transform .38s cubic-bezier(.22,.76,.24,1);will-change:transform;}
+    .cover-slide{flex:0 0 auto;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:6px;}
+    .cover-dots{display:flex;gap:6px;justify-content:center;margin-top:8px;}
+    .cdot{width:6px;height:6px;border-radius:50%;background:rgba(15,23,42,.18);transition:background .2s ease;}
+    .cdot.on{background:var(--accent);}
+    .lb{position:fixed;inset:0;z-index:999;display:none;align-items:center;justify-content:center;
+      background:rgba(23,32,46,.36);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px);}
+    .lb.open{display:flex;}
+    .lb-card{display:flex;flex-direction:column;align-items:center;gap:14px;opacity:0;transform:scale(.94) translateY(8px);
+      transition:opacity .22s ease,transform .26s cubic-bezier(.2,.8,.25,1);}
+    .lb.open .lb-card{opacity:1;transform:none;}
+    .lb-stage{position:relative;overflow:hidden;border-radius:14px;box-shadow:0 26px 70px rgba(15,23,42,.38);}
+    .lb-track{display:flex;height:100%;transition:transform .4s cubic-bezier(.22,.76,.24,1);will-change:transform;}
+    .lb-slide{flex:0 0 auto;height:100%;display:flex;align-items:flex-end;justify-content:center;padding-bottom:30px;}
+    .lb-slide .t{font-family:"Space Grotesk",system-ui,sans-serif;font-size:46px;font-weight:600;letter-spacing:.01em;color:rgba(255,255,255,.95);}
+    .lb-close{position:absolute;top:20px;right:20px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.92);
+      border:1px solid rgba(15,23,42,.08);color:var(--text-1);display:flex;align-items:center;justify-content:center;
+      cursor:pointer;box-shadow:0 4px 14px rgba(15,23,42,.14);z-index:2;transition:background .16s ease;}
+    .lb-close:hover{background:var(--accent);color:#fff;}
+    .lb-close:focus-visible{outline:2px solid #fff;outline-offset:2px;}
+    .lb-zone{position:absolute;top:0;bottom:0;width:528px;display:flex;align-items:center;border:0;padding:0;cursor:pointer;
+      color:#fff;z-index:1;background:transparent;transition:background .2s ease;}
+    .lb-zone[data-dir="prev"]{left:0;justify-content:flex-end;padding-right:34px;}
+    .lb-zone[data-dir="next"]{right:0;justify-content:flex-start;padding-left:34px;}
+    .lb-zone:hover[data-dir="prev"],.lb-zone:focus-visible[data-dir="prev"]{background:linear-gradient(90deg,rgba(23,32,46,.20),rgba(23,32,46,0) 82%);}
+    .lb-zone:hover[data-dir="next"],.lb-zone:focus-visible[data-dir="next"]{background:linear-gradient(270deg,rgba(23,32,46,.20),rgba(23,32,46,0) 82%);}
+    .lb-zone:focus-visible{outline:2px solid #fff;outline-offset:-2px;}
+    .lb-zone .zb{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+      background:rgba(255,255,255,.16);box-shadow:inset 0 0 0 1px rgba(255,255,255,.36),0 8px 22px rgba(15,23,42,.24);
+      backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);opacity:0;transform:scale(.82);
+      transition:opacity .18s ease,transform .2s cubic-bezier(.2,.8,.25,1),background .16s ease;}
+    .lb-zone:hover .zb,.lb-zone:focus-visible .zb{opacity:1;transform:none;background:rgba(255,255,255,.30);}
+    .lb-meta{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .lb-meta .cdot{background:rgba(255,255,255,.38);}
+    .lb-meta .cdot.on{background:#fff;}
+    .lb-hint{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;font-size:11px;letter-spacing:.06em;color:rgba(255,255,255,.85);}
+  </style>
+</helmet>
+<div style="position:relative;width:1440px;height:900px;overflow:hidden;"><div style="position:absolute;left:40px;top:0;height:96px;display:flex;align-items:center;"><div class="tsclock" data-od-id="timeline-date"><span class="ctx">2026</span><span class="sep" aria-hidden="true">.</span><span class="hit">08</span></div></div><div style="position:absolute;right:40px;top:0;height:96px;display:flex;align-items:center;gap:10px;"><button type="button" class="iconbtn" data-od-id="pan-prev" aria-label="前一段" title="前一段"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 6.4 9 12l5.6 5.6"/></svg></button><button type="button" class="iconbtn" data-od-id="pan-next" aria-label="后一段" title="后一段"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9.4 6.4 15 12l-5.6 5.6"/></svg></button><div class="seg" data-od-id="scale-switch" title="切换缩放层级 · 也可 Ctrl + 滚轮换档"><div class="on">日</div><div>周</div><div>月</div></div></div><div class="mid"></div><div class="axis"></div><div style="position:absolute;left:300px;top:474px;width:320px;height:13px;border-radius:7px;background:repeating-linear-gradient(45deg,rgba(15,23,42,.07) 0 2px,transparent 2px 6px);-webkit-mask-image:linear-gradient(90deg,#000 0 76%,transparent 100%);mask-image:linear-gradient(90deg,#000 0 76%,transparent 100%);"></div><div class="label" style="position:absolute;left:460px;top:452px;transform:translateX(-50%);white-space:nowrap;">AUG 22 &#8212; AUG 24</div><div style="position:absolute;left:200px;top:480px;width:1px;height:5px;background:rgba(15,23,42,.14);"></div><div class="label" style="position:absolute;left:200px;top:491px;transform:translateX(-50%);white-space:nowrap;">AUG 21</div><div style="position:absolute;left:700px;top:480px;width:1px;height:5px;background:rgba(15,23,42,.14);"></div><div class="label" style="position:absolute;left:700px;top:491px;transform:translateX(-50%);white-space:nowrap;">AUG 25</div><div style="position:absolute;left:920px;top:480px;width:1px;height:5px;background:rgba(15,23,42,.14);"></div><div class="label" style="position:absolute;left:920px;top:491px;transform:translateX(-50%);white-space:nowrap;">AUG 26</div><div style="position:absolute;left:1140px;top:480px;width:1px;height:7px;background:var(--accent);"></div><div class="label" style="position:absolute;left:1140px;top:491px;transform:translateX(-50%);white-space:nowrap;color:var(--accent);">AUG 27</div><div style="position:absolute;left:200px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#0E9E68;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17.5" cy="19.5" r="1.3"/><path d="M2.8 4h2.4l2.4 11.1a1.6 1.6 0 0 0 1.6 1.3h7.7a1.6 1.6 0 0 0 1.6-1.3L20.6 8.2H6"/></svg></div><div class="dot" style="background:#0E9E68;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:460px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#2F6BFF;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5.2" width="17" height="15.3" rx="2.6"/><path d="M3.5 10.2h17M8 3.4v3.4M16 3.4v3.4"/></svg></div><div class="dot" style="background:#2F6BFF;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:720px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#7A3E8F;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.4 19 12 8 18.6Z"/></svg></div><div class="dot" style="background:#7A3E8F;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:720px;top:512px;transform:translateX(-50%);display:flex;align-items:flex-start;gap:6px;"><div style="display:flex;flex-direction:column;gap:6px;"><div class="shot" style="background:linear-gradient(135deg,#AC87B9,#7A3E8F);"></div><div class="shot" style="background:linear-gradient(135deg,#AC87B9,#7A3E8F);"></div><div class="shot" style="background:linear-gradient(135deg,#AC87B9,#7A3E8F);"></div><div class="shot" style="background:linear-gradient(135deg,#AC87B9,#7A3E8F);"></div></div></div><div style="position:absolute;left:860px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#7A3E8F;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#7A3E8F;">&#215;5</span></div><div class="dot" style="background:#7A3E8F;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:960px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#3E7A34;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#3E7A34;">&#215;3</span></div><div class="dot" style="background:#3E7A34;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:960px;top:512px;transform:translateX(-50%);display:flex;align-items:flex-start;gap:6px;"><div style="display:flex;flex-direction:column;gap:6px;"><div class="shot" style="background:linear-gradient(135deg,#87AC81,#3E7A34);"></div><div class="shot" style="background:linear-gradient(135deg,#87AC81,#3E7A34);"></div><div class="shot" style="background:linear-gradient(135deg,#87AC81,#3E7A34);"></div></div></div><div style="position:absolute;left:1090px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#B05A1E;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.4 19 12 8 18.6Z"/></svg></div><div class="dot" style="background:#B05A1E;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:1090px;top:512px;transform:translateX(-50%);display:flex;align-items:flex-start;gap:6px;"><div style="display:flex;flex-direction:column;gap:6px;"><div class="shot" style="background:linear-gradient(135deg,#CE9873,#B05A1E);"></div><div class="shot" style="background:linear-gradient(135deg,#CE9873,#B05A1E);"></div></div></div><div style="position:absolute;left:1240px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#9A6B1F;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#9A6B1F;">&#215;8</span></div><div class="dot" style="background:#9A6B1F;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div style="position:absolute;left:1240px;top:512px;transform:translateX(-50%);display:flex;align-items:flex-start;gap:6px;"><div style="display:flex;flex-direction:column;gap:6px;"><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div></div><div style="display:flex;flex-direction:column;gap:6px;"><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div><div class="shot" style="background:linear-gradient(135deg,#C0A374,#9A6B1F);"></div></div></div><div style="position:absolute;left:1380px;bottom:420px;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:flex-end;gap:12px;padding-bottom:7px;"><div style="display:flex;flex-direction:column;align-items:center;"><div style="display:flex;align-items:center;gap:3px;color:#0E9E68;margin-bottom:5px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17.5" cy="19.5" r="1.3"/><path d="M2.8 4h2.4l2.4 11.1a1.6 1.6 0 0 0 1.6 1.3h7.7a1.6 1.6 0 0 0 1.6-1.3L20.6 8.2H6"/></svg></div><div class="dot" style="background:#0E9E68;"></div></div></div><div style="width:1px;height:64px;background:var(--stem);"></div></div><div class="edge-hint left" data-od-id="edge-hint-left" aria-hidden="true" title="指针停在边缘约 150ms 后自动向左滚动"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.4 6.4 15 12l-5.6 5.6"/></svg></div><div class="edge-hint right" data-od-id="edge-hint-right" aria-hidden="true" title="指针停在边缘约 150ms 后自动向右滚动"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.4 6.4 15 12l-5.6 5.6"/></svg></div><div style="position:absolute;left:40px;bottom:0;height:34px;display:flex;align-items:center;gap:8px;"><div class="dot" style="background:var(--text-1);"></div><div class="mono" style="font-size:11px;color:var(--text-3);">LAST SYNC 2026-08-27 09:12</div><span class="mode-badge" data-od-id="env-badge">LIVE</span></div><a class="gear" data-od-id="settings-gear" href="Settings.dc.html" aria-label="打开设置" style="position:absolute;right:24px;bottom:42px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></a>
+<div style="position:absolute;left:1214px;top:376px;width:52px;height:44px;border-radius:14px;background:var(--hover);z-index:55;" data-od-id="shelved-group-hint" aria-hidden="true"></div>
+<div style="position:absolute;left:1080px;top:150px;width:320px;background:#FFFFFF;border:1px solid rgba(15,23,42,.06);border-radius:18px;box-shadow:0 12px 32px rgba(15,23,42,.16);padding:14px;display:flex;gap:12px;z-index:60;" data-od-id="shelved-panel-demo" id="sh-card">
+  <div style="display:flex;flex-direction:column;">
+    <div id="cov-frame" data-od-id="cover-carousel" class="cover-frame" tabindex="0" role="button" title="滚轮切换封面 · 点击放大" aria-label="Hades 封面，共 3 张：滚轮切换，点击放大" style="width:96px;height:144px;border-radius:10px;">
+      <div id="cov-track" class="cover-track" style="width:96px;">
+        <div class="cover-slide" style="width:96px;background:linear-gradient(150deg,#C2768E,#A33055);"><span class="num" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.92);">HAD</span></div>
+        <div class="cover-slide" style="width:96px;background:radial-gradient(120px 96px at 20% 12%,rgba(255,255,255,.26),rgba(255,255,255,0) 62%),linear-gradient(120deg,#D8A0AE 0%,#B4435F 52%,#8A2742 100%);"><span class="num" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.95);">HAD</span></div>
+        <div class="cover-slide" style="width:96px;background:radial-gradient(110px 88px at 88% 86%,rgba(255,255,255,.20),rgba(255,255,255,0) 60%),linear-gradient(205deg,#C2768E 0%,#A33055 50%,#5E1730 100%);"><span class="num" style="font-size:13px;font-weight:600;color:rgba(255,255,255,.95);">HAD</span></div>
+      </div>
+    </div>
+    <div id="cov-dots" class="cover-dots"><span class="cdot on"></span><span class="cdot"></span><span class="cdot"></span></div>
+  </div>
+  <div style="flex:1 1 auto;display:flex;flex-direction:column;gap:10px;padding-top:2px;">
+    <div style="display:flex;flex-direction:column;gap:3px;">
+      <div style="display:flex;align-items:baseline;gap:6px;"><div style="font-size:13.5px;font-weight:500;line-height:1.5;">Hades</div><span style="font-size:11px;line-height:1.5;color:var(--text-3);">封盘</span></div>
+      <div class="mono" style="font-size:11px;color:var(--text-3);">2026-08-27</div>
+      <div class="mono" style="font-size:11px;color:var(--text-3);">运行 63 天 &#183; 成就 38/50</div>
+    </div>
+    <div style="height:1px;background:var(--divider);"></div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <div style="display:flex;align-items:center;gap:4px;"><div style="display:flex;align-items:center;gap:3px;color:#A33055;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#A33055;">&#215;8</span></div><div style="flex:1 1 auto;"></div><div class="mono" style="font-size:11px;color:var(--text-3);">22:06</div></div>
+    </div>
+  </div>
+</div>
+</div><script>
+(function(){
+  var tries=0;
+  function boot(){
+    var frame=document.getElementById('cov-frame');
+    var track=document.getElementById('cov-track');
+    if(!frame||!track){ if(tries++<100){ setTimeout(boot,150); } return; }
+    var slides=[].slice.call(track.children);
+    var dotsEl=document.getElementById('cov-dots');
+    var dots=dotsEl?[].slice.call(dotsEl.children):[];
+    var chip=document.getElementById('cov-chip');
+    var n=slides.length; if(!n){ return; }
+    var sw=slides[0].offsetWidth||96;
+    var i=0,last=0,acc=0,lastFocus=null,lbOpen=false;
+    var lb=null,lbt=null,lbTr=null;
+    function dotsSync(){
+      for(var d=0;d<dots.length;d++){ if(d===i){dots[d].classList.add('on');} else {dots[d].classList.remove('on');} }
+      if(chip){ chip.textContent=(i+1)+'/'+n; }
+      if(lb){
+        var bd=lb.querySelectorAll('.lb-meta .cdot');
+        for(var b=0;b<bd.length;b++){ if(b===i){bd[b].classList.add('on');} else {bd[b].classList.remove('on');} }
+      }
+    }
+    function snap(to){
+      i=(to+n)%n;
+      track.style.transform='translateX('+(-i*sw)+'px)';
+      if(lbTr){ lbTr.style.transform='translateX('+(-i*336)+'px)'; }
+      dotsSync();
+    }
+    function stepWheel(e){
+      if(e){ e.preventDefault(); }
+      var dx=(Math.abs(e.deltaX)>Math.abs(e.deltaY))?e.deltaX:e.deltaY;
+      acc+=dx;
+      if(Math.abs(acc)>=28||(acc!==0&&(Date.now()-last)>=260)){
+        var dir=acc>0?1:-1; acc=0; last=Date.now(); snap(i+dir);
+      }
+    }
+    lb=document.createElement('div'); lb.className='lb';
+    var card=document.createElement('div'); card.className='lb-card';
+    var stage=document.createElement('div'); stage.className='lb-stage';
+    lbt=document.createElement('div'); lbt.className='lb-track';
+    stage.appendChild(lbt);
+    var meta=document.createElement('div'); meta.className='lb-meta';
+    var dots2=document.createElement('div'); dots2.className='cover-dots'; dots2.style.marginTop='0';
+    for(var s=0;s<n;s++){ var sp=document.createElement('span'); sp.className='cdot'; dots2.appendChild(sp); }
+    var hint=document.createElement('div'); hint.className='lb-hint'; hint.textContent='滚轮 / 点击左右侧切换 · ESC 关闭';
+    meta.appendChild(dots2); meta.appendChild(hint);
+    card.appendChild(stage); card.appendChild(meta); lb.appendChild(card);
+    var closeBtn=document.createElement('button'); closeBtn.className='lb-close'; closeBtn.type='button';
+    closeBtn.setAttribute('aria-label','关闭放大');
+    closeBtn.innerHTML='<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+    lb.appendChild(closeBtn);
+    document.body.appendChild(lb);
+    var zPrev=document.createElement('button'); zPrev.type='button'; zPrev.className='lb-zone'; zPrev.setAttribute('data-dir','prev');
+    zPrev.setAttribute('aria-label','上一张');
+    zPrev.innerHTML='<span class="zb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 6.4 9 12l5.6 5.6"/></svg></span>';
+    var zNext=document.createElement('button'); zNext.type='button'; zNext.className='lb-zone'; zNext.setAttribute('data-dir','next');
+    zNext.setAttribute('aria-label','下一张');
+    zNext.innerHTML='<span class="zb"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.4 6.4 15 12l-5.6 5.6"/></svg></span>';
+    lb.appendChild(zPrev); lb.appendChild(zNext);
+    lbTr=lbt;
+    function buildBig(){
+      lbTr.innerHTML='';
+      for(var s2=0;s2<n;s2++){
+        var d=document.createElement('div'); d.className='lb-slide'; d.style.width='336px';
+        d.style.backgroundImage=getComputedStyle(slides[s2]).backgroundImage;
+        var t=document.createElement('span'); t.className='t';
+        t.textContent=(slides[s2].textContent||'').trim(); d.appendChild(t);
+        lbTr.appendChild(d);
+      }
+      stage.style.width='336px'; stage.style.height='504px';
+    }
+    function openLB(){
+      if(lbOpen){ return; }
+      lbOpen=true; lastFocus=frame;
+      buildBig();
+      lbTr.style.transition='none';
+      lbTr.style.transform='translateX('+(-i*336)+'px)';
+      dotsSync();
+      lb.classList.add('open');
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ lbTr.style.transition=''; }); });
+      try{ closeBtn.focus({preventScroll:true}); }catch(err){ closeBtn.focus(); }
+    }
+    function closeLB(){
+      if(!lbOpen){ return; }
+      lbOpen=false; lb.classList.remove('open');
+      if(lastFocus){ try{ lastFocus.focus({preventScroll:true}); }catch(err){ lastFocus.focus(); } }
+    }
+    frame.addEventListener('click',openLB);
+    frame.addEventListener('wheel',stepWheel,{passive:false});
+    frame.addEventListener('keydown',function(e){
+      if(e.key==='ArrowRight'||e.key==='ArrowDown'){ e.preventDefault(); snap(i+1); }
+      else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){ e.preventDefault(); snap(i-1); }
+      else if(e.key==='Enter'||e.key===' '){ e.preventDefault(); openLB(); }
+    });
+    lb.addEventListener('wheel',stepWheel,{passive:false});
+    lb.addEventListener('click',function(e){ if(e.target===lb){ closeLB(); } });
+    closeBtn.addEventListener('click',closeLB);
+    zPrev.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); snap(i-1); });
+    zNext.addEventListener('click',function(e){ e.preventDefault(); e.stopPropagation(); snap(i+1); });
+    window.addEventListener('keydown',function(e){
+      if(e.key==='Escape'){ closeLB(); }
+      else if(lbOpen&&(e.key==='ArrowRight'||e.key==='ArrowDown')){ e.preventDefault(); snap(i+1); }
+      else if(lbOpen&&(e.key==='ArrowLeft'||e.key==='ArrowUp')){ e.preventDefault(); snap(i-1); }
+    });
+  }
+  if(document.readyState==='loading'){ document.addEventListener('DOMContentLoaded',boot); } else { boot(); }
+})();
+</script></x-dc>
+</body>
+</html>

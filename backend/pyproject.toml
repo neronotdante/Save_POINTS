@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "game-calendar-backend"
+version = "0.1.0"
+description = "Game_C 游戏日历后端：多用户 REST API（SteamID 认证 + 每日采集 + 日历聚合）"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "UNLICENSED" }
+authors = [{ name = "Game_C" }]
+keywords = ["steam", "calendar", "fastapi", "game"]
+dependencies = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "sqlalchemy>=2.0",
+    "pydantic>=2.6",
+    "pydantic-settings>=2.2",
+    "alembic>=1.13",
+    "httpx>=0.27",
+    "cryptography>=42.0",
+    "apscheduler>=3.10",
+    "slowapi>=0.1.9",
+    # 封面本地取色（services/theme.py）。PRD P-11「成就标记用游戏主题色」是 P0，
+    # 没有它 pick_color_from_cover 会直接 ImportError→None，全库主题色回退成同一个紫色，
+    # 而封面照样白下载一遍——曾经就是这个状态，别再把它当「可选依赖」。
+    "pillow>=10.0",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.1"]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+]
+
+[project.scripts]
+game-calendar-backend = "app.main:run"
+# 阈值改动后一次性重算全库生命状态（后端接口文档 §5）
+game-calendar-recompute = "app.cli:recompute_lifecycle_cli"
+# 绑定 Steam Web API Key（终端隐式输入 → 校验 → Fernet 加密入库）
+game-calendar-bind-apikey = "app.cli:bind_apikey_cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/main.py", "tests/*"]

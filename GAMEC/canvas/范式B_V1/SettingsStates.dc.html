@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg-fallback:#EEF1F6; --panel-ref:#F2F4F8; --accent:#2F6BFF; --accent-ink:#FFFFFF;
+      --divider:rgba(15,23,42,.08); --hover:rgba(15,23,42,.05);
+      --text-1:#17202E; --text-2:rgba(23,32,46,.62); --text-3:rgba(23,32,46,.50); --text-muted:rgba(23,32,46,.30);
+      --ev-release:#2F6BFF; --ev-purchase:#0E9E68; --ev-achieve-fallback:#6D4AE0;
+      --axis:rgba(15,23,42,.16); --stem:rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;width:1440px;height:900px;background:var(--bg-fallback);color:var(--text-1);
+      font-family:"Noto Sans SC","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+    a{color:#2F6BFF;text-decoration:none;} a:hover{color:#1B4FD8;}
+    .num{font-family:"Space Grotesk",system-ui,sans-serif;}
+    .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;}
+    .label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .caption{font-size:11px;line-height:1.5;font-weight:400;color:var(--text-3);}
+    .body-text{font-size:13.5px;line-height:1.5;font-weight:500;}
+    .board-label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .iconbtn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.30);
+      border:1px solid rgba(15,23,42,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.90);
+      display:flex;align-items:center;justify-content:center;color:var(--text-2);}
+    .pill{height:30px;border-radius:999px;padding:0 14px;background:rgba(255,255,255,.30);
+      border:1px solid rgba(15,23,42,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.90);
+      display:inline-flex;align-items:center;font-size:13.5px;font-weight:500;color:var(--text-1);}
+    .btn-primary{height:44px;border-radius:999px;padding:0 22px;background:var(--accent);color:var(--accent-ink);
+      font-size:13.5px;font-weight:500;display:inline-flex;align-items:center;gap:8px;
+      box-shadow:0 6px 20px rgba(47,107,255,.30),inset 0 1px 0 rgba(255,255,255,.40);}
+    /* 只读环境下同步按钮是禁用的：不是「点了没反应」，而是明确不可点 */
+    .btn-primary.disabled{opacity:.55;box-shadow:none;}
+    .row{min-height:58px;border-radius:18px;background:rgba(255,255,255,.24);border:1px solid rgba(15,23,42,.10);
+      padding:0 16px;display:flex;align-items:center;gap:14px;}
+    .row .main{flex:1 1 auto;display:flex;flex-direction:column;gap:3px;min-width:0;}
+    .avatar{width:44px;height:44px;flex:0 0 44px;border-radius:14px;background:rgba(15,23,42,.06);
+      box-shadow:inset 0 0 0 .5px rgba(15,23,42,.10);}
+    .mode-badge{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      line-height:1;padding:4px 8px;border-radius:999px;flex:none;
+      background:rgba(15,23,42,.06);color:var(--text-2);}
+    .mode-badge.live{background:rgba(47,107,255,.12);color:var(--accent);}
+    .group{display:flex;flex-direction:column;gap:8px;}
+    .col{position:absolute;left:400px;width:640px;display:flex;flex-direction:column;gap:26px;}
+  </style>
+</helmet>
+<div style="position:relative;width:1440px;height:900px;overflow:hidden;">
+
+  <div style="position:absolute;left:40px;top:0;height:96px;display:flex;align-items:center;gap:14px;"><a class="iconbtn" href="Settings.dc.html" aria-label="返回设置"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.6 6.4 9 12l5.6 5.6"/></svg></a><div style="font-size:16px;font-weight:500;line-height:1.4;">设置 &#183; 非 LIVE 环境</div></div>
+
+  <div class="col" style="top:128px;">
+    <div class="group">
+      <div class="label" style="padding-left:4px;">ACCOUNT &#183; 三种环境各一行</div>
+      <div class="row" data-od-id="account-live" style="min-height:76px;">
+        <div class="avatar"></div>
+        <div class="main"><div class="body-text">已连接 Steam</div><div class="mono caption">76561198&#8226;&#8226;&#8226;&#8226;&#8226;&#8226;42 &#183; 537 GAMES</div></div>
+        <div style="display:flex;align-items:center;gap:12px;"><span class="mode-badge live">LIVE</span><div class="pill">退出登录</div></div>
+      </div>
+      <div class="row" data-od-id="account-mock" style="min-height:76px;">
+        <div class="avatar"></div>
+        <div class="main"><div class="body-text">MOCK 测试模式（本地假数据）</div><div class="mono caption">不访问后端 &#183; 数据仅供交互与视觉验收</div></div>
+        <div style="display:flex;align-items:center;gap:12px;"><span class="mode-badge ">MOCK</span><div class="pill">切换环境</div></div>
+      </div>
+      <div class="row" data-od-id="account-import" style="min-height:76px;">
+        <div class="avatar"></div>
+        <div class="main"><div class="body-text">导入的本地备份（只读）</div><div class="mono caption">会话内有效 &#183; 刷新后需要重新导入</div></div>
+        <div style="display:flex;align-items:center;gap:12px;"><span class="mode-badge ">IMPORT</span><div class="pill">切换环境</div></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label" style="padding-left:4px;">SYNC &#183; 只读环境</div>
+      <div class="row" data-od-id="sync-readonly">
+        <div class="main"><div class="body-text">立即同步</div></div>
+        <div style="display:flex;align-items:center;gap:12px;"><div class="mono caption">导入模式为只读，无法同步</div><div class="btn-primary disabled">同步</div></div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="label" style="padding-left:4px;">底栏</div>
+      <div class="row" data-od-id="footer-badges">
+        <div class="main"><div class="body-text">环境标识常驻底栏</div><div class="mono caption">非 LIVE 时必须一眼可辨，避免把测试 / 备份数据当成真实数据看</div></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span class="mode-badge live">LIVE</span><span class="mode-badge">MOCK</span><span class="mode-badge">IMPORT</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

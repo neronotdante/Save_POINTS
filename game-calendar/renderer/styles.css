@@ -1,0 +1,688 @@
+/*
+ * 游戏日历 · 主日历样式
+ * 取值来源：DESIGN/05_UI设计规范_游戏日历.md v0.3
+ * 玻璃层原理与配方：DESIGN/开发文档/06_液态玻璃实现文档.md
+ *
+ * 玻璃路线（v0.3）：透明悬浮窗 + 精修假玻璃。
+ * L2 **没有** backdrop-filter —— 透明窗下它采样不到 Windows 桌面，是空转（06 §1.1）。
+ * 玻璃靠「边缘 + 光 + 颗粒 + 投影」成立，不靠透明度。
+ */
+
+:root {
+  /* ===== 底色与强调（05 §3.1） ===== */
+  --bg-window: transparent;
+  --bg-fallback: #EEF1F6;
+  --panel-ref: #F2F4F8;
+  --accent: #2F6BFF;
+  --accent-ink: #FFFFFF;
+  --glass-border: rgba(15, 23, 42, .10);
+  --glass-highlight: rgba(255, 255, 255, .92);
+  --divider: rgba(15, 23, 42, .08);
+  --hover: rgba(15, 23, 42, .05);
+
+  /* ===== 文字（05 §3.2） ===== */
+  --text-1: #17202E;
+  --text-2: rgba(23, 32, 46, .62);
+  --text-3: rgba(23, 32, 46, .50);   /* v0.3 由 .46 改：.46 实算 2.82:1，低于 3:1 */
+  --text-muted: rgba(23, 32, 46, .30);
+
+  /* ===== 事件色（05 §3.3） ===== */
+  --ev-release: #2F6BFF;
+  --ev-purchase: #0E9E68;
+  --ev-achieve-fallback: #6D4AE0;
+  --ev-dot-edge: rgba(15, 23, 42, .14);  /* 色点压边，强制项，深壁纸下是轮廓的唯一来源 */
+
+  /* ===== 玻璃（05 §2） ===== */
+  /* §2.1 主体填充：光心在左上外侧，主体 .88（下限 .86，不得下调） */
+  --glass-l2-fill: radial-gradient(135% 105% at 20% -8%,
+    rgba(255, 255, 255, .95) 0%,
+    rgba(255, 255, 255, .90) 26%,
+    rgba(255, 255, 255, .88) 58%,
+    rgba(255, 255, 255, .845) 100%);
+
+  /* §2.2 折射内环：沿周长由亮转暗 */
+  --glass-rim: linear-gradient(158deg,
+    rgba(255, 255, 255, .98) 0%,
+    rgba(255, 255, 255, .55) 18%,
+    rgba(255, 255, 255, .14) 38%,
+    rgba(15, 23, 42, .10) 62%,
+    rgba(15, 23, 42, .16) 82%,
+    rgba(15, 23, 42, .22) 100%);
+
+  /* §2.3 三层投影：接触 / 中程 / 环境 —— 需下方 62px 空间，由 body padding 提供 */
+  --glass-l2-shadow:
+    0 1px 2px rgba(15, 23, 42, .10),
+    0 6px 14px rgba(15, 23, 42, .10),
+    0 18px 44px rgba(15, 23, 42, .20);
+
+  /* §2.4 内壁：顶部体积散射 + 底部厚度 */
+  --glass-l2-inner:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 rgba(15, 23, 42, .06),
+    inset 0 24px 32px -28px rgba(255, 255, 255, .85),
+    inset 0 -14px 22px -18px rgba(15, 23, 42, .16);
+
+  /* §2.5 颗粒层：磨砂质感 + 消色带。删掉面板立刻变塑料。
+     三个坑，缺一个噪点就等于没加：
+       1. `color-interpolation-filters='sRGB'` —— 不写默认走 linearRGB，
+          出来是一片近乎均匀的浅灰，方差几乎为 0（实测 std 从 3.9 掉到 1.1）。
+       2. feComponentTransfer 的 slope=3 —— feTurbulence 原始对比度太低，
+          要绕 0.5 放大三倍才有可见颗粒；feFuncA 拍平成 1，否则 alpha 也是噪声。
+       3. mix-blend-mode 用 overlay 而不是 multiply —— 灰噪居中 0.5 时
+          overlay 均值不偏移、明暗双向；multiply 只会整体压暗，
+          要达到同样颗粒感得把面板压掉十几个灰阶。 */
+  --glass-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n' color-interpolation-filters='sRGB'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3CfeComponentTransfer%3E%3CfeFuncR type='linear' slope='3' intercept='-1'/%3E%3CfeFuncG type='linear' slope='3' intercept='-1'/%3E%3CfeFuncB type='linear' slope='3' intercept='-1'/%3E%3CfeFuncA type='discrete' tableValues='1'/%3E%3C/feComponentTransfer%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  --glass-noise-opacity: .40;
+
+  /* ===== 玻璃 L3 / 浮层（05 §2） =====
+     L3 的 backdrop-filter 是**有效**的：它背后是页面内的 L2，在同一合成树里。
+     只有 L2 那一层的 blur 是空转（背后是 Windows 桌面）。删的时候别连它一起删。 */
+  --glass-l3-fill: linear-gradient(160deg,
+    rgba(255, 255, 255, .92),
+    rgba(255, 255, 255, .86));
+
+  --glass-l3-rim: linear-gradient(160deg,
+    rgba(255, 255, 255, .98) 0%,
+    rgba(255, 255, 255, .55) 18%,
+    rgba(255, 255, 255, .14) 38%,
+    rgba(15, 23, 42, .10) 62%,
+    rgba(15, 23, 42, .16) 82%,
+    rgba(15, 23, 42, .22) 100%);
+
+  /* 浮层从下方升起，投影朝上 */
+  --glass-l3-shadow:
+    0 -2px 4px rgba(15, 23, 42, .10),
+    0 -8px 18px rgba(15, 23, 42, .12),
+    0 -20px 50px rgba(15, 23, 42, .20);
+
+  --glass-l3-inner:
+    inset 0 1px 0 var(--glass-highlight),
+    inset 0 -1px 0 rgba(15, 23, 42, .06),
+    inset 0 24px 32px -28px rgba(255, 255, 255, .85);
+
+  --scrim: rgba(15, 23, 42, .18);
+
+  /* ===== 层内元素：相对面板底的提亮量（05 §2.6） ===== */
+  --lift-today: rgba(255, 255, 255, .42);
+  --lift-today-hover: rgba(255, 255, 255, .52);
+  --lift-btn: rgba(255, 255, 255, .30);
+  --lift-btn-hover: rgba(255, 255, 255, .46);
+  --lift-pill: rgba(255, 255, 255, .24);
+  --lift-pill-hover: rgba(255, 255, 255, .42);
+  --lift-row: rgba(255, 255, 255, .24);
+  --lift-row-hover: rgba(255, 255, 255, .40);
+
+  /* ===== 字体（05 §4） ===== */
+  --font-grot: 'Space Grotesk', 'Segoe UI', 'Microsoft YaHei UI', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Cascadia Mono', Consolas, ui-monospace, monospace;
+  --font-sans: 'Noto Sans SC', 'Microsoft YaHei UI', 'Segoe UI', system-ui, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--text-1);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/*
+ * 窗口 764 × 864，面板 668 × 768。
+ * 这一圈内边距是纯投影空间，永远不可见 —— 上 32 / 左右 48 / 下 64（05 §1.2）。
+ * 原来的四周 16px 装不下 0 18px 44px 的环境影，投影会被窗口边缘切成直角。
+ */
+body { padding: 32px 48px 64px; }
+
+button {
+  border: none;
+  padding: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+}
+
+/* ================================================================
+   玻璃层 L2（05 §2）
+   L1 是 Windows 桌面，不由本产品绘制，因此不存在 .glass-l1。
+   L3 浮层本版未实现；实现时按 05 §2 同构，其 backdrop-filter 保留。
+   ================================================================ */
+.glass-l2 {
+  position: relative;
+  isolation: isolate;              /* 把颗粒层的 multiply 关在本层内 */
+  width: 100%;
+  height: 100%;
+  border-radius: 26px;
+  background: var(--glass-l2-fill);
+  box-shadow:
+    0 0 0 1px var(--glass-border), /* 外描边：浅底可读性红线，不得调淡 */
+    var(--glass-l2-shadow),
+    var(--glass-l2-inner);
+}
+
+/* §2.2 折射内环：贴在外描边内侧的 1px 渐变环 */
+.glass-l2::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 25px;             /* 26 − 1 */
+  padding: 1px;
+  background: var(--glass-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* §2.5 颗粒层：压在内容下方 */
+.glass-l2::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--glass-noise);
+  background-size: 160px 160px;
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: overlay;         /* 见 --glass-noise 的注释，不要改成 multiply */
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* 内容必须抬到颗粒层之上（05 §9） */
+.glass-l2 > * {
+  position: relative;
+  z-index: 1;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 14px 14px;
+}
+
+.drag-band {
+  width: 100%;
+  height: 18px;
+  flex: none;
+  -webkit-app-region: drag;
+}
+
+/* ===== 月份头 ===== */
+.month-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  width: 640px;
+  height: 62px;
+  flex: none;
+  margin-bottom: 8px;
+  -webkit-app-region: drag;
+}
+
+.month-title { display: flex; align-items: baseline; gap: 8px; }
+.month-title .num {
+  font-family: var(--font-grot);
+  font-size: 54px;
+  line-height: .92;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  color: var(--text-1);
+}
+.month-title .zh { font-size: 16px; font-weight: 500; color: var(--text-1); }
+.month-title .year { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+
+.nav { display: flex; align-items: center; gap: 8px; }
+
+.icon-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: var(--lift-btn);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .10), inset 0 1px 0 rgba(255, 255, 255, .90);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 120ms ease-out, transform 120ms ease-out;
+}
+.icon-btn svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: var(--text-2);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.icon-btn:hover { background: var(--lift-btn-hover); }
+.icon-btn:active { transform: scale(.97); box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .10), inset 0 1px 0 rgba(255, 255, 255, .45); }
+
+/* ===== 可滚动月份条 ===== */
+.month-strip {
+  position: relative;
+  width: 640px;
+  height: 32px;
+  flex: none;
+  margin-bottom: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  display: flex;
+  align-items: center;
+}
+.month-strip::-webkit-scrollbar { display: none; }
+
+.pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: max-content;
+  padding-right: 8px;
+}
+
+.pill {
+  flex: none;
+  height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  background: var(--lift-pill);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .06);
+  color: var(--text-2);
+  white-space: nowrap;
+  transition: background 120ms ease-out;
+}
+.pill:hover { background: var(--lift-pill-hover); }
+.pill.active {
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 2px 6px rgba(47, 107, 255, .28), inset 0 1px 0 rgba(255, 255, 255, .30);
+}
+
+/* ===== 星期行 ===== */
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  width: 640px;
+  height: 20px;
+  align-items: center;
+  flex: none;
+  margin-bottom: 8px;
+}
+.wd {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .10em;
+  color: var(--text-3);
+}
+
+/* ===== 日历网格 ===== */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: repeat(6, 88px);
+  gap: 4px;
+  width: 640px;
+  height: 548px;
+  flex: none;
+}
+
+.cell {
+  position: relative;
+  border-radius: 12px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  background: transparent;
+  transition: background 120ms ease-out;
+}
+.cell:hover { background: var(--hover); }
+/* 只有当天有事件的格子能点开详情浮层 */
+.cell.has-ev { cursor: pointer; }
+
+.daynum {
+  font-family: var(--font-grot);
+  font-size: 14px;
+  line-height: 22px;
+  color: var(--text-1);
+}
+.cell.off-month .daynum { color: var(--text-muted); }
+
+.today-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  line-height: 1;
+}
+
+.cell.today {
+  background: var(--lift-today);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, .14), inset 0 0 0 1px rgba(15, 23, 42, .12), inset 0 1px 0 rgba(255, 255, 255, .70);
+}
+.cell.today:hover { background: var(--lift-today-hover); }
+
+.dots { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.cell.off-month .dots { opacity: .45; }
+
+.evdot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  flex: none;
+  box-shadow: inset 0 0 0 .5px var(--ev-dot-edge);  /* 强制项，见 05 §3.3 */
+}
+.evcount {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-3);
+}
+.evfold {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-3);
+}
+
+.release-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--ev-release);
+  border-radius: 0 0 12px 12px;
+}
+
+/* ===== 底栏（两件套） ===== */
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 640px;
+  height: 34px;
+  flex: none;
+  margin-top: 12px;
+}
+.sync { display: flex; align-items: center; gap: 8px; }
+.sync .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ev-purchase);
+  box-shadow: inset 0 0 0 .5px var(--ev-dot-edge);
+}
+.sync .label { font-family: var(--font-mono); font-size: 11px; color: var(--text-3); }
+
+/* ================================================================
+   日详情浮层 L3（05 §2、§8.2）
+   ================================================================ */
+
+/* 浮层层：铺满面板并按面板圆角裁切，收起时浮层被裁在视野外，不需要 visibility 折腾 */
+.glass-l2 > .sheet-layer {
+  position: absolute;
+  inset: 0;
+  border-radius: 26px;
+  overflow: hidden;
+  z-index: 1;
+  pointer-events: none;
+  -webkit-app-region: no-drag;
+}
+.sheet-layer.open { pointer-events: auto; }
+
+.sheet-mask {
+  position: absolute;
+  inset: 0;
+  background: var(--scrim);
+  opacity: 0;
+  transition: opacity 200ms linear;   /* 05 §7 */
+}
+.sheet-layer.open .sheet-mask { opacity: 1; }
+
+/* 选择器比 .glass-l3 更具体：.glass-l3 里也有 position，靠层叠顺序压不住 */
+.sheet-layer > .sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 420px;
+  padding: 20px 20px 16px;            /* 05 §8.2 容器内边距 */
+  display: flex;
+  flex-direction: column;
+  transform: translateY(100%);
+  transition: transform 320ms cubic-bezier(.32, .72, 0, 1);   /* 05 §7 浮层升起 */
+}
+.sheet-layer.open .sheet { transform: none; }
+
+/* 下沿圆角随面板取 26（05 §1.2 圆角阶） */
+.glass-l3 {
+  position: relative;
+  isolation: isolate;
+  border-radius: 30px 30px 26px 26px;
+  background: var(--glass-l3-fill);
+  -webkit-backdrop-filter: blur(44px) saturate(180%);
+  backdrop-filter: blur(44px) saturate(180%);
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, .12),
+    var(--glass-l3-shadow),
+    var(--glass-l3-inner);
+}
+.glass-l3::before {
+  content: '';
+  position: absolute;
+  inset: 1px;
+  border-radius: 29px 29px 25px 25px;
+  padding: 1px;
+  background: var(--glass-l3-rim);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+.glass-l3::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image: var(--glass-noise);
+  background-size: 160px 160px;
+  opacity: var(--glass-noise-opacity);
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  z-index: 0;
+}
+.glass-l3 > * { position: relative; z-index: 1; }
+
+/* ===== 顶部区（高 96）：左日期 + 右三项计数 ===== */
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  height: 96px;
+  flex: none;
+}
+
+.sheet-date .num {
+  display: block;
+  font-family: var(--font-grot);
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: -.02em;
+  color: var(--text-1);
+}
+.sheet-date .cap {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* 块宽 56，横向等距；计数为 0 的块不渲染，三项皆 0 时整行不出现（05 §8.2） */
+.metrics { display: flex; align-items: flex-start; gap: 12px; }
+.metric { width: 56px; text-align: center; }
+.metric .n {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 500;
+  color: var(--text-1);
+}
+.metric .l {
+  display: block;
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-2);
+}
+
+/* ===== 事件行区（可滚动） ===== */
+.sheet-rows {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 8px;
+  margin-right: -8px;          /* 滚动条占位不挤压行宽 */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(15, 23, 42, .16) transparent;
+}
+.sheet-rows::-webkit-scrollbar { width: 4px; }
+.sheet-rows::-webkit-scrollbar-track { background: transparent; }
+.sheet-rows::-webkit-scrollbar-thumb { background: rgba(15, 23, 42, .16); border-radius: 999px; }
+
+/* 行高 62 = 封面高度，封面上下贴齐，所以行本身没有纵向内边距 */
+.evrow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 62px;
+  flex: none;
+  padding: 0 14px;
+  border-radius: 18px;
+  background: var(--lift-row);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .06);
+  transition: background 120ms ease-out;
+}
+.evrow:hover { background: var(--lift-row-hover); }
+
+.evrow .kind { display: flex; align-items: center; gap: 4px; flex: none; }
+.evrow .kind svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.evrow .kind .xn {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  line-height: 1;
+  color: currentColor;
+}
+
+/* 封面占位 46 × 62，圆角 10；双色渐变用该游戏主题色 —— 规范 §5 里主题色唯一允许的填充用法 */
+.evrow .cover {
+  position: relative;
+  width: 46px;
+  height: 62px;
+  flex: none;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, .10);
+  overflow: hidden;
+}
+.evrow .cover span {
+  font-family: var(--font-grot);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .02em;
+  color: #FFFFFF;
+  text-shadow: 0 1px 2px rgba(15, 23, 42, .35);
+}
+
+.evrow .name {
+  flex: 1;
+  min-width: 0;
+  font-size: 13.5px;
+  line-height: 1.5;
+  font-weight: 500;
+  color: var(--text-1);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.evrow .stamp {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+}
+
+/* ===== 动效（05 §7） ===== */
+@keyframes slide-in-prev {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes slide-in-next {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+.grid.anim-prev { animation: slide-in-prev 220ms cubic-bezier(.32, .72, 0, 1); }
+.grid.anim-next { animation: slide-in-next 220ms cubic-bezier(.32, .72, 0, 1); }
+
+/* 托盘显隐：淡入 + scale(.98→1)，不做位移（05 §7） */
+@keyframes panel-in {
+  from { opacity: 0; transform: scale(.98); }
+  to { opacity: 1; transform: none; }
+}
+body.appearing .glass-l2 { animation: panel-in 180ms cubic-bezier(.32, .72, 0, 1); }
+
+@media (prefers-reduced-motion: reduce) {
+  .grid.anim-prev,
+  .grid.anim-next,
+  body.appearing .glass-l2 { animation-duration: 120ms; }
+
+  /* 浮层降为 120ms 淡入，不做位移（选择器要跟上面的 .sheet-layer > .sheet 同权重） */
+  .sheet-layer > .sheet { transform: none; opacity: 0; transition: opacity 120ms linear; }
+  .sheet-layer.open > .sheet { opacity: 1; }
+  .sheet-mask { transition-duration: 120ms; }
+}
+
+/* ===== 调试：临时把投影空间染红，验收投影有没有被窗口裁掉（06 §10.3） =====
+   在 <body> 上加 class="debug-bleed" 即可。 */
+body.debug-bleed { background: rgba(255, 0, 0, .35); }

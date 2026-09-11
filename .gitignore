@@ -1,0 +1,44 @@
+# ============================================================
+# Game_C 仓库根 .gitignore
+# 这里挡的是「绝不能进仓库」的东西：本地数据库、密钥、依赖目录。
+# 推送前用 `git status --ignored` 确认它们都在忽略列表里。
+# ============================================================
+
+# --- 本地数据与密钥：包含你自己的 Steam 数据和加密后的 API Key ---
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite3
+*.sqlite3-*
+.env
+*.local.env
+fernet.key
+
+# --- 依赖与虚拟环境 ---
+node_modules/
+.venv/
+venv/
+
+# --- Python 构建产物 ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# --- 编辑器 / 系统 ---
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- 文档库的本地状态（GAMEC 是 Obsidian 库）---
+GAMEC/.obsidian/workspace.json
+GAMEC/.obsidian/workspace-mobile.json
+GAMEC/_to_delete/

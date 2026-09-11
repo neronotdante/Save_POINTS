@@ -1,0 +1,16 @@
+{
+  "name": "game-calendar",
+  "productName": "游戏日历",
+  "version": "0.1.0",
+  "description": "Game_C 游戏日历 — 桌面悬浮日历（仅主日历视图，无后端 / 无数据接口）",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "make-icon": "node scripts/make-icon.js",
+    "smoke": "node scripts/smoke.js"
+  },
+  "devDependencies": {
+    "electron": "^33.2.1"
+  }
+}

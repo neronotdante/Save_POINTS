@@ -1,0 +1,14 @@
+{
+  "name": "game-calendar-steam-sidecar",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Steam 登录侧车：用 steam-session 完成扫码 / 账号密码登录，导出 web session cookie 给 Python 后端",
+  "main": "login.js",
+  "scripts": {
+    "start": "node login.js"
+  },
+  "dependencies": {
+    "steam-session": "^1.8.0",
+    "qrcode": "^1.5.4"
+  }
+}

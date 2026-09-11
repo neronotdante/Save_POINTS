@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "//": "后端必须占 8000：app/config.py 的 public_base_url 是 Steam OpenID 的 realm/return_to 基址，而 app/api/openid.py 会严格比对 return_to，换端口登录会被自己判成不匹配；8000 同时在 CORS 白名单里，前端 api.js 的 DEFAULT_BASE 也指向它。所以 autoPort 必须为 false。后端现在还托管 timeline/：直接开 http://127.0.0.1:8000/ 就是应用，下面的 timeline 配置只是开发时想用 serve.py 无缓存热改时才需要。",
+      "name": "backend",
+      "runtimeExecutable": "backend/.venv/Scripts/python.exe",
+      "runtimeArgs": [
+        "-c",
+        "import os, uvicorn; os.chdir('backend'); uvicorn.run('app.main:app', host='127.0.0.1', port=8000, reload=True)"
+      ],
+      "port": 8000,
+      "autoPort": false
+    },
+    {
+      "//": "前端占 5173：它在后端 CORS 白名单里。登录时 api.js 会用 ?front=<自己的源> 告诉后端从哪来，白名单内的源验签后按原路 302 回来；换成白名单外的端口登录就回不来（会落到 frontend_base_url 的兜底地址）。",
+      "name": "timeline",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "timeline/serve.py",
+        "5173"
+      ],
+      "port": 5173,
+      "autoPort": false
+    },
+    {
+      "//": "画板只是静态查看，没有任何东西按端口找它，可以浮动。",
+      "name": "canvas",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5174",
+        "--directory",
+        "GAMEC/canvas/范式B_V1"
+      ],
+      "port": 5174,
+      "autoPort": true
+    }
+  ]
+}

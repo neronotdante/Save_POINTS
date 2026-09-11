@@ -1,0 +1,1116 @@
+/* Token 命名与 05_UI设计规范_游戏日历.md §3/§4/§5 完全一致，不改名不加前缀。 */
+
+:root {
+  /* §3.1 底色与强调 */
+  --bg-fallback: #EEF1F6;
+  --panel-ref: #F2F4F8;
+  --accent: #2F6BFF;
+  --accent-ink: #FFFFFF;
+  --glass-border: rgba(15, 23, 42, .10);
+  --glass-highlight: rgba(255, 255, 255, .92);
+  --divider: rgba(15, 23, 42, .08);
+  --hover: rgba(15, 23, 42, .05);
+
+  /* §3.2 文字 */
+  --text-1: #17202E;
+  --text-2: rgba(23, 32, 46, .62);
+  --text-3: rgba(23, 32, 46, .50);
+  --text-muted: rgba(23, 32, 46, .30);
+
+  /* §3.3 事件色（系统级固定；成就除外） */
+  --ev-release: #2F6BFF;
+  --ev-purchase: #0E9E68;
+  --ev-achieve-fallback: #6D4AE0;
+
+  /* §3.5 结构色（时间轴专用） */
+  --axis: rgba(15, 23, 42, .16);
+  --stem: rgba(15, 23, 42, .14);
+
+  /* 间距阶（05§1.1：4·6·8·12·16·20·24，6 在时间轴内合法） */
+  --sp-4: 4px; --sp-6: 6px; --sp-8: 8px; --sp-12: 12px; --sp-16: 16px; --sp-20: 20px; --sp-24: 24px;
+
+  /* 圆角阶 */
+  --r-shot: 8px; --r-ach-icon: 6px; --r-cover: 10px; --r-panel: 18px; --r-pill: 999px;
+
+  --header-h: 96px;
+  --footer-h: 34px;
+  --safe-x: 40px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-width: 1120px;
+  background: var(--bg-fallback);
+  color: var(--text-1);
+  font-family: 'Noto Sans SC', 'Microsoft YaHei UI', 'Segoe UI', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] { display: none !important; }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { color: #1B4FD8; }
+
+/* §4 字体 */
+.num { font-family: 'Space Grotesk', system-ui, sans-serif; }
+.mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace; }
+.label {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .10em; text-transform: uppercase; color: var(--text-3);
+}
+.heading { font-size: 16px; line-height: 1.4; font-weight: 500; }
+.body-text { font-size: 13.5px; line-height: 1.5; font-weight: 500; }
+.caption { font-size: 11px; line-height: 1.5; font-weight: 400; color: var(--text-3); }
+
+/* §5 组件 */
+.btn-primary {
+  height: 44px; border-radius: var(--r-pill); border: none; padding: 0 22px;
+  background: var(--accent); color: var(--accent-ink); font-size: 13.5px; font-weight: 500;
+  display: inline-flex; align-items: center; gap: var(--sp-8); cursor: pointer;
+  flex: none; white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(47, 107, 255, .30), inset 0 1px 0 rgba(255, 255, 255, .40);
+}
+.btn-secondary {
+  height: 30px; border-radius: var(--r-pill); padding: 0 14px;
+  flex: none; white-space: nowrap;
+  background: rgba(255, 255, 255, .30); border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .90);
+  color: var(--text-1); font-size: 13.5px; font-weight: 500; cursor: pointer;
+}
+.iconbtn {
+  width: 30px; height: 30px; border-radius: 50%; background: rgba(255, 255, 255, .30);
+  border: 1px solid var(--glass-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .90);
+  display: inline-flex; align-items: center; justify-content: center; color: var(--text-2);
+  cursor: pointer;
+}
+/* 开关态图标钮（导航条 / 方向）。
+   注：日 / 周 / 月三段切换器与其后的 −/+ 缩放条都已删除，缩放只走 Ctrl + 滚轮。 */
+.iconbtn.on {
+  background: var(--accent); color: var(--accent-ink); border-color: transparent;
+  box-shadow: 0 2px 10px rgba(47, 107, 255, .32), inset 0 1px 0 rgba(255, 255, 255, .28);
+}
+.iconbtn.on:hover { background: #527EF5; }
+
+/* 按钮悬停/焦点态（V1 原型 .start-btn / .start-ghost） */
+.btn-primary { transition: background .15s ease, box-shadow .15s ease; }
+.btn-primary:hover:not(:disabled) {
+  background: #1B4FD8;
+  box-shadow: 0 8px 24px rgba(47, 107, 255, .42), inset 0 1px 0 rgba(255, 255, 255, .40);
+}
+.btn-primary:disabled { opacity: .55; cursor: default; }
+.btn-secondary { transition: background .15s ease; }
+.btn-secondary:hover { background: rgba(255, 255, 255, .55); }
+.btn-primary:focus-visible, .btn-secondary:focus-visible, .iconbtn:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+.toggle {
+  width: 44px; height: 26px; border-radius: var(--r-pill); position: relative; border: none; padding: 0;
+  background: rgba(15, 23, 42, .16); cursor: pointer; flex: 0 0 44px;
+  transition: background .12s ease;
+}
+.toggle.on { background: var(--ev-purchase); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+  background: #fff; box-shadow: 0 1px 3px rgba(15, 23, 42, .25); transition: left .12s ease;
+}
+.toggle.on::after { left: 21px; }
+
+.list-row {
+  min-height: 58px; border-radius: var(--r-panel); background: rgba(255, 255, 255, .24);
+  border: 1px solid var(--glass-border); padding: 0 16px; display: flex; align-items: center; gap: 14px;
+}
+
+.dot { width: 6px; height: 6px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .14); }
+
+.shot {
+  width: 96px; height: 54px; border-radius: var(--r-shot); padding: 0; border: 0; display: block;
+  box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .14); background-size: cover; background-position: center;
+  flex: none; cursor: zoom-in; -webkit-tap-highlight-color: transparent;
+  transition: box-shadow .14s ease, transform .14s ease;
+}
+.shot:hover {
+  box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .14), 0 0 0 1.5px rgba(23, 32, 46, .30), 0 6px 14px rgba(23, 32, 46, .14);
+  transform: translateY(-1px);
+}
+.shot:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cover-placeholder {
+  display: flex; align-items: flex-end; justify-content: center; color: rgba(255, 255, 255, .92);
+}
+
+/* ---- 视图容器 ---- */
+/* ---- 整页背景（05§3.1 v1.4：把一张截图 / 封面钉成整页底色）----
+   重模糊是**有意的**：目标是「这张图的底色铺满整页」，不是把一张照片贴到内容后面当墙纸——
+   后者会跟轴上的每一个小图标抢注意力，也和 05§0 规则 2（去除装饰）过不去。糊到只剩色场，
+   它就变成了一层可读的氛围色。
+   洗白层的 .88 是算出来的，不是调出来的：最坏情况（纯黑图）等效底色 = .12×0 + .88×242 ≈ 213，
+   `--accent` 在它上面实算 **3.07:1**，压着 §3.4 的「≥ 3:1」过线，`--text-1` 仍有 8.9:1。
+   **再调低就直接作废 §3.4 的全部对比度验算**；固定色事件点在深色图下靠 §3.3 那道压边保轮廓。 */
+#page-backdrop { position: fixed; inset: 0; z-index: 0; pointer-events: none; display: none; }
+#page-backdrop.on { display: block; }
+/* 底层：同一张图铺满后重糊一遍，加素材主题色兜底。图按 contain 铺时（见 lib/backdrop.js::fitOf）
+   四周露的就是它——比一整片高饱和主题色安静得多，也让整页看起来还是同一张图。
+   单值的 size / position 会套用到**每一层**，所以这一条同时管住了图和渐变。 */
+.bd-base {
+  position: absolute; inset: -5%;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  filter: blur(30px) saturate(.9);
+}
+/* inset 负值把模糊的透明羽化推到视口外，否则四边会露出一圈白。
+   background-size 由 JS 按素材比例写（cover / contain），这里只定死居中与不平铺——
+   平铺没关起来的话，contain 的图会在四周复制出一圈缩略图。 */
+.bd-img {
+  position: absolute; inset: -5%; filter: blur(14px) saturate(.95);
+  background-position: center; background-repeat: no-repeat;
+}
+.bd-wash { position: absolute; inset: 0; background: rgba(242, 244, 248, .88); }
+
+.view { position: relative; z-index: 1; width: 100%; min-height: 100vh; overflow: hidden; }
+.view[hidden] { display: none; }
+
+/* ---- 时间轴主视图（07§4.2） ---- */
+#timeline-header {
+  position: absolute; left: 0; right: 0; top: 0; height: var(--header-h);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--safe-x);
+}
+#timeline-header .controls { display: flex; align-items: center; gap: 10px; }
+
+/* 时间读数（07 V1：年份弱化 + 当前档位强调，等宽数字避免逐帧跳动） */
+.tsclock {
+  display: flex; align-items: baseline;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  font-variant-numeric: tabular-nums;
+}
+.tsclock .ctx { font-size: 26px; font-weight: 400; color: rgba(23, 32, 46, .56); letter-spacing: .02em; }
+.tsclock .sep { margin: 0 5px; font-size: 20px; color: rgba(23, 32, 46, .40); }
+.tsclock .hit { font-size: 44px; font-weight: 500; color: var(--text-1); letter-spacing: .01em; }
+
+/* 视口中轴参考线（V1 原型 .mid）：固定在主体区**沿轴方向**的中点，不随轨道平移 */
+.mid-guide { position: absolute; background: rgba(15, 23, 42, .05); pointer-events: none; z-index: 1; }
+#timeline-body[data-orient="h"] .mid-guide { left: 50%; top: 0; bottom: 0; width: 1px; }
+#timeline-body[data-orient="v"] .mid-guide { top: 50%; left: 0; right: 0; height: 1px; }
+
+/* 浮动设置入口（V1 原型 .gear）：右下角常驻，取代页脚里的小图标按钮 */
+.gear {
+  position: absolute; right: 24px; bottom: 42px; z-index: 70;
+  width: 44px; height: 44px; border-radius: 50%; padding: 0;
+  background: rgba(255, 255, 255, .45); border: 1px solid var(--glass-border);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .08), inset 0 1px 0 rgba(255, 255, 255, .9);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-2); cursor: pointer;
+  transition: background .16s ease, color .16s ease, box-shadow .16s ease;
+}
+.gear svg { transition: transform .5s cubic-bezier(.2, .8, .2, 1); }
+.gear:hover { background: var(--accent); color: #fff; box-shadow: 0 6px 18px rgba(47, 107, 255, .38); }
+.gear:hover svg { transform: rotate(35deg); }
+.gear:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.gear::after {
+  content: '设置'; position: absolute; left: 50%; bottom: calc(100% + 10px);
+  padding: 5px 9px; border-radius: 8px; background: rgba(23, 32, 46, .92); color: #fff;
+  font-family: 'Noto Sans SC', 'Microsoft YaHei UI', 'Segoe UI', system-ui, sans-serif;
+  font-size: 11.5px; font-weight: 500; letter-spacing: .02em; line-height: 1.4; white-space: nowrap;
+  opacity: 0; transform: translate(-50%, 4px); pointer-events: none;
+  transition: opacity .16s ease, transform .16s ease;
+}
+.gear:hover::after, .gear:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
+
+#timeline-footer {
+  position: absolute; left: 0; right: 0; bottom: 0; height: var(--footer-h);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 var(--safe-x);
+}
+#timeline-footer .sync-status { display: flex; align-items: center; gap: var(--sp-8); }
+
+/* ============ 时间轴主体：横排 / 竖排共用一套结构（07§4.10）============
+   `#timeline-body[data-orient]` 是整套方向切换的**唯一开关**。JS 只负责两件事：
+   写 `--axis-c`（轴线在垂轴方向的位置）和给元素写沿轴坐标；「哪个方向是长的、
+   谁该朝哪边长」全部在这里用 CSS 表达。这样换方向不需要第二套渲染代码。 */
+#timeline-body {
+  position: absolute; left: 0; right: 0; top: var(--header-h); bottom: var(--footer-h);
+  overflow: hidden;
+  /* 轴线在主体区内的**垂轴**位置（05§1.1「垂轴方向居中」）。385 只是 1440×900 横排下的
+     初值，真值由 timeline.js::measureCross() 每次视口变化时写进来。
+     轴两侧的元素一律用 calc(var(--axis-c) ± N) 定位 —— 改这一个值就是整页重排。 */
+  --axis-c: 385px;
+}
+#timeline-track { position: absolute; left: 0; top: 0; will-change: transform; }
+#timeline-body[data-orient="h"] #timeline-track { height: 100%; }
+#timeline-body[data-orient="v"] #timeline-track { width: 100%; }
+
+.axis-line { position: absolute; background: var(--axis); }
+#timeline-body[data-orient="h"] .axis-line { left: 0; top: var(--axis-c); height: 1px; }
+#timeline-body[data-orient="v"] .axis-line { top: 0; left: var(--axis-c); width: 1px; }
+
+/* 刻度分主次（07§4.6 v3.19）：次刻度只是「尺子的格」，主刻度（月首 / 年首）是**地标**，
+   横跨轴线、写全年份。层次拉开之后，读时间不再靠盯一排同样淡的小字。 */
+.tick-mark { position: absolute; background: rgba(15, 23, 42, .10); }
+.tick-mark.major { background: rgba(15, 23, 42, .26); }
+/* 日期带在轴的**标记侧**（v3.1 由轴下 11 改）：另一侧现在是截图的密集区，日期挤在中间
+   又远又乱；贴着轴放在标记侧读得更快，也把另一侧整条让给了内容。
+   引线在靠轴的一段渐隐（见 .stem-line），不会穿过日期。 */
+.tick-label { position: absolute; white-space: nowrap; }
+#timeline-body[data-orient="h"] .tick-label { transform: translate(-50%, calc(-100% - 10px)); }
+#timeline-body[data-orient="v"] .tick-label { transform: translate(calc(-100% - 10px), -50%); }
+/* 主刻度标签：12px、`--text-1`、字距收到 .04em。.label 基类那套 10.5px / `--text-3` / .10em
+   是给「次要标注」用的，而这几个字现在是轴上**唯一**的时间锚点，得按主要信息给。 */
+.tick-label.major { font-size: 12px; font-weight: 500; color: var(--text-1); letter-spacing: .04em; }
+
+.sparse-band {
+  position: absolute; border-radius: 7px;
+  background: repeating-linear-gradient(45deg, rgba(15, 23, 42, .07) 0 2px, transparent 2px 6px);
+}
+#timeline-body[data-orient="h"] .sparse-band {
+  height: 13px;
+  -webkit-mask-image: linear-gradient(90deg, #000 0 76%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0 76%, transparent 100%);
+}
+#timeline-body[data-orient="v"] .sparse-band {
+  width: 13px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0 76%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 76%, transparent 100%);
+}
+
+/* ---- 轴的起点（07§4.2b v3.8）----
+   轴线本身从这里开始画（见 timeline.js），端帽是尺子上那个「0」，标签落在轴线的延长线上。
+   三者合起来读作「这条线从这一天起」，而不是「轴边上贴了张便签」。
+   不用 `--accent`：那是「今日」的专属色（05§6 第7条），两端各自是什么必须一眼可辨。 */
+.start-cap { position: absolute; background: var(--text-2); border-radius: 1px; }
+#timeline-body[data-orient="h"] .start-cap { transform: translateX(-50%); }
+#timeline-body[data-orient="v"] .start-cap { transform: translateY(-50%); }
+
+/* 标签：垂轴方向**居中于轴线**、沿轴方向排在端帽之前。两个方向同一条规则，
+   竖排下不会再歪到一侧去。起点之前那段是留白，所以不需要底衬把它从背景里拎出来。
+   构造与 .now-flag 逐项对齐（同 gap、同字体、同字号）——两端是同一件东西的两头。 */
+.start-flag {
+  position: absolute; z-index: 21; display: inline-flex; align-items: baseline; gap: var(--sp-6);
+  white-space: nowrap; cursor: default;
+}
+/* 沿轴方向的落点由 JS 量完宽度后写 left/top（见 renderStartMark），这里只管垂轴居中 */
+#timeline-body[data-orient="h"] .start-flag { transform: translateY(-50%); }
+#timeline-body[data-orient="v"] .start-flag { transform: translateX(-50%); }
+/* START 与 TODAY 用同一支笔：大写小字距的记号体（同页脚的 LAST SYNC）。
+   **只有颜色不同**——accent 是「今天」的专属色（05§6 第 7 条），起点走中性灰。
+   这样两端一眼看得出是同一类东西，又不会混淆哪一头是「现在」。 */
+.sf-label {
+  font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: .14em; color: var(--text-3);
+}
+.sf-date {
+  font-size: 11px; line-height: 1.5; color: var(--text-1);
+  font-variant-numeric: tabular-nums; letter-spacing: .02em;
+}
+
+/* 「今天」标：与起点标同构（端帽 + 轴线延长线上的标签），只是换 accent 色、排向末端。
+   端帽比起点的粗一档并染成 accent——它是**当下**，在一条讲过去的轴上是唯一活的那个点。 */
+.now-cap { position: absolute; background: var(--accent); border-radius: 1px; }
+#timeline-body[data-orient="h"] .now-cap { transform: translateX(-50%); }
+#timeline-body[data-orient="v"] .now-cap { transform: translateY(-50%); }
+.now-flag {
+  position: absolute; z-index: 21; display: inline-flex; align-items: baseline; gap: var(--sp-6);
+  white-space: nowrap; cursor: default;
+}
+#timeline-body[data-orient="h"] .now-flag { transform: translateY(-50%); }
+#timeline-body[data-orient="v"] .now-flag { transform: translateX(-50%); }
+/* TODAY 走大写小字距的记号体（同页脚的 LAST SYNC），日期与起点标同一支笔 */
+.nf-label {
+  font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 10px; font-weight: 600;
+  letter-spacing: .14em; color: var(--accent);
+}
+.nf-date {
+  font-size: 11px; line-height: 1.5; color: var(--text-2);
+  font-variant-numeric: tabular-nums; letter-spacing: .02em;
+}
+
+/* 时点组**锚在轴线上、朝标记侧长出去**（translate 的 -100%）。这样组里加不加封面、
+   封面多大，都不影响定位——不必先知道整组有多高再去算 top。
+   z-index 20 > 导航条的 12：视口窄到最高一档引线顶进导航条那一带时，赢的必须是标记
+   （它是内容，导航条是辅助）。仍然低于命中层的 45，「三个 ICON 时 hover 不响应」的
+   层级结论不受影响。 */
+.event-group { position: absolute; z-index: 20; display: flex; align-items: center; cursor: pointer; }
+#timeline-body[data-orient="h"] .event-group { flex-direction: column; transform: translate(-50%, -100%); }
+#timeline-body[data-orient="v"] .event-group { flex-direction: row; transform: translate(-100%, -50%); }
+
+/* unit 一律「图标在外、色点朝轴」：横排是上下，竖排是左右 */
+.event-units { display: flex; gap: var(--sp-12); }
+#timeline-body[data-orient="h"] .event-units { align-items: flex-end; padding-bottom: 7px; }
+#timeline-body[data-orient="v"] .event-units { flex-direction: column; align-items: flex-end; padding-right: 7px; }
+.event-unit { display: flex; align-items: center; }
+#timeline-body[data-orient="h"] .event-unit { flex-direction: column; }
+#timeline-body[data-orient="v"] .event-unit { flex-direction: row; }
+.event-unit .icon-row { display: flex; align-items: center; gap: 3px; }
+#timeline-body[data-orient="h"] .event-unit .icon-row { margin-bottom: 5px; }
+#timeline-body[data-orient="v"] .event-unit .icon-row { margin-right: 5px; }
+.event-unit .xn { font-size: 9px; }
+.event-plus { font-size: 9px; color: var(--text-3); align-self: flex-end; }
+#timeline-body[data-orient="h"] .event-plus { padding-bottom: 2px; }
+#timeline-body[data-orient="v"] .event-plus { padding-right: 2px; }
+.shelved-cap { border-radius: 1px; background: var(--text-3); flex: none; }
+#timeline-body[data-orient="h"] .shelved-cap { width: 12px; height: 1.5px; margin-bottom: 4px; }
+#timeline-body[data-orient="v"] .shelved-cap { width: 1.5px; height: 12px; margin-right: 4px; }
+
+/* 引线到轴之前先渐隐：日期带（.tick-label）就浮在靠轴那一段，实线穿过 10.5px 的等宽小字
+   会把字啃花。渐隐后引线仍然「指向」轴上的那一点，关联关系不丢。 */
+.stem-line { background: var(--stem); flex: none; }
+#timeline-body[data-orient="h"] .stem-line {
+  width: 1px;
+  -webkit-mask-image: linear-gradient(180deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+}
+#timeline-body[data-orient="v"] .stem-line {
+  height: 1px;
+  -webkit-mask-image: linear-gradient(90deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+  mask-image: linear-gradient(90deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+}
+
+/* v3.20：悬浮**不再染底色**。那块 5% 灰矩形是「我指到了」的替身，而真正该回答的问题是
+   「我指的是哪一格、它是什么」——现在由 panel **弹在那一格正上方**直接回答（见 timeline.js
+   的 onHoverUnit：锚点从整组中心改成指针那一格的中心）。留着底色就变成同一件事说两遍
+   （05§0 规则 2），而且它盖在封面和图标上，本身也是一层噪音。 */
+/* 只管悬浮的那些格子不该有「可点」的手型——光标是这里唯一说得清「点了会怎样」的地方 */
+.df-hit.hover-only { cursor: default; }
+
+/* 命中区必须盖在标记层之上：`.event-group` 在 DOM 里排在 `.hit-region` 之后，两者又都因
+   transform 各自形成 stacking context，不给 z-index 的话图标层会整个压住命中层——鼠标停在
+   图标上时 hit-region 收不到 mouseenter，只有图标之间的空隙才触发。unit 越多空隙越少，
+   表现就是「三个 ICON 时 hover 不响应」。底色是 5% 灰（05§6 第9条），压在图标上看不出来。 */
+.hit-region {
+  position: absolute; border-radius: var(--r-panel); background: transparent; z-index: 45;
+}
+#timeline-body[data-orient="h"] .hit-region { transform: translateX(-50%); }
+#timeline-body[data-orient="v"] .hit-region { transform: translateY(-50%); }
+/* `.hit-region.active` 一并删掉：JS 里从来没有谁加过这个类，是条从没生效过的死规则。 */
+
+/* 轴截图侧：当日截图列 + 截图面板，整块以时点为中心沿轴居中——交给 flex + translate(-50%)，
+   不在 JS 里算偏移，这样渲染尺寸与 layout.js::belowMain() 的占位口径天然是同一个。
+   横排：列内竖着叠、列间横着排；竖排整个对调。 */
+.below-stack { position: absolute; display: flex; align-items: flex-start; gap: var(--sp-6); }
+.shot-cols { display: flex; gap: var(--sp-6); flex: none; }
+.shot-column { display: flex; gap: var(--sp-6); }
+#timeline-body[data-orient="h"] .below-stack { transform: translateX(-50%); flex-direction: row; }
+#timeline-body[data-orient="h"] .shot-cols { flex-direction: row; }
+#timeline-body[data-orient="h"] .shot-column { flex-direction: column; }
+#timeline-body[data-orient="v"] .below-stack { transform: translateY(-50%); flex-direction: column; }
+#timeline-body[data-orient="v"] .shot-cols { flex-direction: column; }
+#timeline-body[data-orient="v"] .shot-column { flex-direction: row; }
+
+/* ---- 游戏截图面板（07§4.2d）：对不上轴、但数量够多的截图，按游戏收成一块 ----
+   ⚠️ 沿轴尺寸由 JS 按 layout.js::shotPanelMain() 写死（见那里的注释）：标题是游戏名，
+   长度不可控，让它撑开容器就会和喂给坐标层的占位对不上。所以标题只能省略号，不能换行。
+   标题**永远在上方**（flex-direction:column，两个方向都是）——横排时它吃掉一截轴下厚度，
+   面板内的每列张数因此比普通截图列少一张，那笔账在 panelChromeCross() 里算。 */
+.shot-panel {
+  flex: none; box-sizing: border-box; position: relative;
+  display: flex; flex-direction: column; gap: var(--sp-6);
+  /* 外壳交给皮肤（.sk-*）。基类只留结构，不留材质——两种皮肤的底、边、留白、缝宽都不同，
+     基类里再留一层白玻璃会从角标那一种底下透出来。 */
+  padding: 10px; border: 0; background: transparent;   /* 与 layout.js SHOT_PANEL_PAD 一致 */
+}
+
+/* ---- 外壳：主题色角标（07§4.2j）----
+   不画整圈线，只留对角两个角。「成组」这件事不需要一整个框，两个角就够；轴下方本来就浅，
+   少一层面能让缩略图自己站出来。角用**这款游戏的主题色**，与封面边框同一套语言。 */
+.shot-panel { border-radius: var(--r-panel); --sp-ring: var(--axis); }
+.shot-panel::before, .shot-panel::after {
+  content: ''; position: absolute; width: 22px; height: 22px; pointer-events: none;
+  border: 1.5px solid var(--sp-ring);
+}
+.shot-panel::before { left: 0; top: 0; border-right: 0; border-bottom: 0; border-radius: 10px 0 0 0; }
+.shot-panel::after { right: 0; bottom: 0; border-left: 0; border-top: 0; border-radius: 0 0 10px 0; }
+
+.sp-head { border-bottom: 1px solid var(--divider); }
+
+/* 标题居中：`1fr auto 1fr` 三列，标题在正中那格。
+   靠 padding 估张数按钮多宽是行不通的——「9 张」和「300 张」差着一倍，估小了会压住标题，
+   估大了窄面板的标题只剩两个字。所以左侧放一个**与张数按钮同字的隐形替身**（JS 建，
+   见 shotPanelEl）：两侧那格的最小宽度因此完全相同，标题**在任何情况下都精确居中**——
+   包括标题长到要省略号、两侧 `1fr` 被压到最小宽度的时候。只靠 `1fr` 是不够的：
+   那时左格能压到 0、右格压不过按钮本身，标题会往左偏半个按钮（实测偏 10.6px）。 */
+.sp-head {
+  display: grid; grid-template-columns: 1fr minmax(0, auto) 1fr;
+  align-items: center; gap: var(--sp-8); min-width: 0; padding: 0 2px;
+  /* **标题不参与决定面板有多宽**（07§4.2j）。竖排下面板的宽度是内容撑出来的，而中间那条
+     `minmax(0,auto)` 轨道在「按内容定宽」的上下文里会朝 max-content 长——一条把当天所有
+     游戏名串起来的标题就把面板顶宽了 26px，框比它装的图片大出一圈。
+     `width:0 + min-width:100%` 让它对固有宽度贡献 0、再撑满最终宽度：宽度只由缩略图网格决定。 */
+  width: 0; min-width: 100%;
+}
+/* 标题走 05§4 的 `body` token（Noto Sans SC 13.5 / 1.5 / 500）——那一行写的就是
+   「列表主行、**游戏名**」，而这里显示的正是游戏名。原来的 12 / 500 不在字阶里，
+   放在一屏全是 token 值的界面上会显出一种说不上来的不搭。 */
+.sp-title {
+  grid-column: 2; min-width: 0; text-align: center;
+  font-size: 13.5px; line-height: 1.5; font-weight: 500; color: var(--text-1);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+/* 计数即「看全部」，走 `mono/stamp`（JetBrains Mono 11 / 400）——它是数量，属于数据一列。
+   原来的 10 / 0.04em 同样是个字阶外的自造值。 */
+.sp-count {
+  grid-column: 3; justify-self: end;
+  border: 0; padding: 0 4px; background: transparent; cursor: pointer;
+  /* 不许折行：`1fr` 那两格的最小宽度取的是内容的 min-content，而中文「33 张」逐字都能断，
+     min-content 只有一个字宽——标题一长，两侧就被压成 21px，张数被折成两行、整条标题栏
+     从 20 撑到 33，面板高度随之和 layout 里的 SHOT_PANEL_HEAD 对不上。 */
+  white-space: nowrap;
+  font-size: 11px; line-height: 1.5; color: var(--text-3);
+  border-radius: 5px; transition: background .14s ease, color .14s ease;
+}
+.sp-count:hover { background: rgba(15, 23, 42, .06); color: var(--text-1); }
+.sp-count:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.sp-count-ghost { grid-column: 1; justify-self: start; visibility: hidden; pointer-events: none; }
+/* 标题比图片宽时面板会被撑宽（07§4.2j-2），网格在里面**居中**——靠边站会让那片空白看着
+   像是「少了一张图」，居中才读作「这一组就这么多」。 */
+.sp-body { display: flex; align-items: flex-start; justify-content: center; }
+
+/* ---- 标记侧的「媒体带」：开局封面 + 成就图标（07§4.2c）----
+   两者并排成一条，因为它们回答的是同一个问题：这一天留下了什么。
+   align-items:flex-end 让高矮不一的块**统一贴住靠轴那一边**——横排贴下沿、竖排贴右沿，
+   于是竖版封面、横版封面、32 的成就图标三种尺寸混在一起也有一条共同基线。 */
+.media-band { display: flex; gap: var(--sp-6); flex: none; }
+/* 封面带钉在**距轴固定距离**上，不跟标记块的流走（07§4.2i）。
+   `.event-group` 靠 translate 把自己的「贴轴那一条边」压在轴线上，所以这里的 bottom / right
+   量的就是「距轴多远」。跟着流走的话，引线分档（64/104/144/184）和 ×N 的实际字宽这些
+   与封面毫无关系的东西都会把一排封面顶得高低不齐。 */
+.media-band.pinned { position: absolute; margin: 0 !important; }
+#timeline-body[data-orient="h"] .media-band.pinned {
+  left: 50%; transform: translateX(-50%); bottom: var(--fp-pin);
+}
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .media-band.pinned {
+  bottom: auto; top: var(--fp-pin);
+}
+#timeline-body[data-orient="v"] .media-band.pinned {
+  top: 50%; transform: translateY(-50%); right: var(--fp-pin);
+}
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .media-band.pinned {
+  right: auto; left: var(--fp-pin);
+}
+#timeline-body[data-orient="h"] .media-band { flex-direction: row; align-items: flex-end; margin-bottom: 8px; }
+#timeline-body[data-orient="v"] .media-band { flex-direction: column; align-items: flex-end; margin-right: 8px; }
+.fp-covers, .ach-tiles { display: flex; gap: var(--sp-6); flex: none; }
+#timeline-body[data-orient="h"] .fp-covers { flex-direction: row; align-items: flex-end; }
+#timeline-body[data-orient="v"] .fp-covers { flex-direction: column; align-items: flex-end; }
+/* 定形表的形（2-3-2 的菱形、3-2-3 的沙漏）靠**列在垂轴方向居中**才成立，
+   不能像封面那样贴边对齐——贴边的话菱形会塌成一个缺角的方块。 */
+#timeline-body[data-orient="h"] .ach-tiles { flex-direction: row; align-items: center; }
+#timeline-body[data-orient="v"] .ach-tiles { flex-direction: column; align-items: center; }
+
+/* 成就簇（07§4.2c v3.6）：先沿**垂轴**叠满一列，再沿**时间轴**增开一列。
+   轴上方的厚度是富余的、沿轴长度是稀缺的，把成就从长的那一维挪到厚的那一维，
+   1~3 个成就的时点沿轴占位从 108 掉到 32——这就是「给轴增密」的来源。 */
+.ach-col { display: flex; gap: var(--sp-6); flex: none; }
+#timeline-body[data-orient="h"] .ach-col { flex-direction: column; align-items: center; }
+#timeline-body[data-orient="v"] .ach-col { flex-direction: row; align-items: center; }
+
+/* 成就图标：32 + 圆角 6，与 05§5 成就行里的图标同规格——轴上和面板里是同一件东西。 */
+.ach-tile {
+  flex: none; width: 32px; height: 32px; border-radius: var(--r-ach-icon);
+  background-size: cover; background-position: center;
+  box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .14);
+  transition: transform .14s ease, box-shadow .14s ease;
+}
+/* 只有明细到位（.ready）才给悬停反馈：占位色块上没有信息可看，别骗用户去指它 */
+.ach-tile.ready { cursor: help; }
+.ach-tile.ready:hover {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .14), 0 0 0 1.5px rgba(23, 32, 46, .30), 0 4px 10px rgba(23, 32, 46, .14);
+}
+/* `+N` 占簇里的一格，和图标一样大——挤在簇尾，不额外加长沿轴占位 */
+.ach-more {
+  flex: none; width: 32px; height: 32px; border-radius: var(--r-ach-icon);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px; color: var(--text-3);
+  background: rgba(15, 23, 42, .05); box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .10);
+}
+
+/* 成就悬停读数：名称 + 解锁时刻（+ 全球解锁率） */
+.ach-tip {
+  position: absolute; z-index: 64; pointer-events: none; max-width: 260px;
+  padding: 6px 10px; border-radius: 8px;
+  background: rgba(23, 32, 46, .94); color: #fff;
+  box-shadow: 0 8px 22px rgba(15, 23, 42, .24);
+}
+.ach-tip .n { font-size: 11.5px; font-weight: 500; line-height: 1.4; }
+.ach-tip .m {
+  font-size: 10px; letter-spacing: .04em; line-height: 1.5; margin-top: 2px;
+  color: rgba(255, 255, 255, .72); font-variant-numeric: tabular-nums;
+}
+
+/* 开局封面。**尺寸由 JS 按素材比例写**（竖版 76×114 / 横版 136×64，见 lib/layout.js），
+   这里只管观感。v3.3 去掉了封面上的游戏名缩写与 play 角标：真封面本身就认得出是哪款游戏，
+   它俩在一张 76×114 的图上是纯噪声。 */
+.fp-cover {
+  position: relative; flex: none; padding: 0; border: 0; overflow: hidden;
+  border-radius: var(--r-cover); cursor: zoom-in; -webkit-tap-highlight-color: transparent;
+  background-size: cover; background-position: center;
+  /* 边框 = 这款游戏的主题色（`--fp-ring` 由 JS 按 themeOf() 写入，后端没取到色时前端
+     从封面现算一次再换上来）。全部用 inset 而不是 border/outline——border 会改变盒子尺寸，
+     让它和 layout.js 算好的占位对不上；outline 又会溢到相邻封面的间距里。 */
+  --fp-ring: rgba(15, 23, 42, .14);
+  box-shadow: inset 0 0 0 2px var(--fp-ring);
+  transition: box-shadow .14s ease, transform .14s ease;
+}
+/* 横版封面（v3.9 起与竖版等高，136×114，理由见 lib/layout.js 的形态注释）。
+   一个 1.19:1 的框装 2.14:1 的头图，多出来的 50px 用**同一张图放大模糊**去铺，
+   原图清晰居中叠在上面——图不被裁、也不留空带。三层的叠放顺序靠绘制顺序保证：
+   ::before（模糊底）→ .fp-hdr（清晰头图，JS 建的真子元素）→ ::after（描边）。 */
+.fp-cover.wide {
+  border-radius: var(--r-shot);   /* 横版是头图，圆角跟截图一档 */
+  /* 描边改画在 ::after 上：inset box-shadow 属于元素自身的背景阶段，会被上面三层盖住。
+     外投影（hover 那圈）不受影响，仍留在元素上。 */
+  box-shadow: none;
+}
+.fp-cover.wide::before,
+.fp-cover.wide::after { content: ''; position: absolute; pointer-events: none; }
+/* 模糊底：往外多铺 14px，模糊半径带来的透明边缘被 .fp-cover 的 overflow:hidden 裁掉，
+   否则四周会露出一圈渐淡的白边。 */
+.fp-cover.wide::before {
+  inset: -14px; background-image: var(--fp-img); background-size: cover; background-position: center;
+  filter: blur(11px) saturate(1.22);
+}
+.fp-cover.wide .fp-hdr {
+  position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+  aspect-ratio: 460 / 215; background-image: var(--fp-img);
+  background-size: cover; background-position: center;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, .28);
+}
+.fp-cover.wide::after {
+  inset: 0; border-radius: inherit; box-shadow: inset 0 0 0 2px var(--fp-ring);
+}
+.fp-cover.wide.return::after {
+  box-shadow: inset 0 0 0 4px var(--fp-ring), inset 0 0 0 5px var(--text-1);
+}
+.fp-cover.wide:hover, .fp-cover.wide.return:hover {
+  box-shadow: 0 0 0 1.5px rgba(23, 32, 46, .30), 0 8px 18px rgba(23, 32, 46, .16);
+}
+
+/* 一张真图都没有时，把游戏名写在色块上。
+   这不与上面 v3.3 那条相矛盾，正相反：那条的理由是「真封面本身就认得出是哪款游戏」，
+   所以缩写是重复信息。而这里**没有封面**——一块纯主题色不指向任何一款游戏，轴上并排
+   几块紫色更是彼此分不开。所以有图时不写、没图时写，判据始终是同一条：这一格现在
+   认不认得出。写的是**完整游戏名**而不是 2 字母缩写：「OA」既读不出是 Ori，也读不出
+   是别的什么，它把「认不出」换了个更精致的形式而已。
+   字号由 JS 按当前 --fp-k（封面缩放系数）给，缩到看不清时整块由 JS 撤掉。 */
+.fp-cover .fp-name {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  padding: 8% 9%; box-sizing: border-box; pointer-events: none;
+}
+.fp-cover .fp-name > span {
+  /* 6 行是 76×114 去掉内边距后装得下的行数（96px ÷ 11px×1.24 ≈ 7，留一行余量）。
+     真装不下的（「Call of Duty®: Modern Warfare® 3 (2011) - Multiplayer」这种）由 clamp
+     省略号收尾——认出是哪款游戏靠的是前半截，把后半截挤成密不透风的小字反而更读不出来。 */
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 6; overflow: hidden;
+  text-align: center; font-weight: 650; line-height: 1.24;
+  /* 主题色深浅不定，纯白字在浅色块上会糊掉——描一圈半透明的暗影兜底，
+     比按亮度切换黑白字稳（同一款游戏不会因为取色差 1% 就翻转字色）。 */
+  color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 10px rgba(0, 0, 0, .35);
+  word-break: break-word;
+}
+.fp-cover:hover {
+  box-shadow: inset 0 0 0 2px var(--fp-ring), 0 0 0 1.5px rgba(23, 32, 46, .30), 0 8px 18px rgba(23, 32, 46, .16);
+  transform: translateY(-1px);
+}
+.fp-cover:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* 封盘后重启：同一支主题色，但**更粗一圈 + 外缘压一道墨线**。
+   只靠粗细（2 vs 4）区分是不够的——主题色什么颜色都可能，浅色游戏的 4px 环未必比深色游戏的
+   2px 环更「重」。外缘那道 --text-1 与色相无关，是这两态之间唯一稳定的判据。
+   两条 inset 的先后不能反：后写的画在下面，5px 那条只露出最外面 1px。 */
+.fp-cover.return { box-shadow: inset 0 0 0 4px var(--fp-ring), inset 0 0 0 5px var(--text-1); }
+.fp-cover.return:hover {
+  box-shadow: inset 0 0 0 4px var(--fp-ring), inset 0 0 0 5px var(--text-1),
+    0 0 0 1.5px rgba(23, 32, 46, .30), 0 8px 18px rgba(23, 32, 46, .16);
+}
+
+/* pointer-events:none 是必需的：它压在主体区沿轴两端各 64px 上，不关掉的话
+   贴边的那几张截图 / 封面根本点不到（点到的是这层渐变）。 */
+.edge-hint { pointer-events: none; position: absolute; }
+#timeline-body[data-orient="h"] .edge-hint {
+  top: 0; bottom: 0; width: 64px;
+  background: linear-gradient(270deg, rgba(15, 23, 42, .07), rgba(15, 23, 42, 0));
+}
+#timeline-body[data-orient="h"] .edge-hint.left { left: 0; transform: scaleX(-1); }
+#timeline-body[data-orient="h"] .edge-hint.right { right: 0; }
+#timeline-body[data-orient="v"] .edge-hint {
+  left: 0; right: 0; height: 64px;
+  background: linear-gradient(0deg, rgba(15, 23, 42, .07), rgba(15, 23, 42, 0));
+}
+#timeline-body[data-orient="v"] .edge-hint.left { top: 0; transform: scaleY(-1); }
+#timeline-body[data-orient="v"] .edge-hint.right { bottom: 0; }
+
+/* ---- 全景导航条（07§4.2a）：贴主体区一侧、横贯全长的活动概览 ----
+   它不随轨道平移（是 #timeline-track 的兄弟），因为它表达的是「整条 domain」而不是当前视窗。
+   所有位置都由 JS 写成 --at / --w / --len 三个百分比变量，条本身多大都不用重建。 */
+:root {
+  --ov-ev: rgba(15, 23, 42, .34);     /* 柱的底段 = 事件 */
+  --ov-shot: rgba(15, 23, 42, .13);   /* 柱的顶段 = 截图 */
+}
+.ov-rail {
+  position: absolute; z-index: 12; border-radius: 12px; overflow: hidden;
+  cursor: pointer; touch-action: none;
+  background: rgba(255, 255, 255, .28);
+  box-shadow: inset 0 0 0 1px var(--glass-border), inset 0 1px 0 rgba(255, 255, 255, .80);
+  transition: background .16s ease;
+}
+#timeline-body[data-orient="h"] .ov-rail { left: var(--safe-x); right: var(--safe-x); top: 18px; height: 56px; }
+#timeline-body[data-orient="v"] .ov-rail { top: var(--safe-x); bottom: var(--safe-x); left: 18px; width: 56px; }
+.ov-rail:hover { background: rgba(255, 255, 255, .42); }
+.ov-rail:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* 柱区留出地标文字那一条：横排让顶部 17，竖排让「远离柱底」的那一侧 28（年号是横排文字） */
+.ov-bars { position: absolute; }
+#timeline-body[data-orient="h"] .ov-bars { left: 0; right: 0; bottom: 0; top: 17px; }
+#timeline-body[data-orient="v"] .ov-bars { top: 0; bottom: 0; left: 0; right: 28px; }
+
+/* 柱**分两段**：底段事件、顶段截图。两根一样高的柱子，一根可能是解了 20 个成就、
+   另一根是截了 20 张图——混成一个色块就把这个区别抹掉了。用一层渐变实现，不多建节点。 */
+.ov-bar { position: absolute; border-radius: 1px; }
+#timeline-body[data-orient="h"] .ov-bar {
+  left: var(--at); width: var(--w); bottom: 0; height: var(--len);
+  background: linear-gradient(to top, var(--ov-ev) 0 var(--seg), var(--ov-shot) var(--seg) 100%);
+}
+#timeline-body[data-orient="v"] .ov-bar {
+  top: var(--at); height: var(--w); left: 0; width: var(--len);
+  background: linear-gradient(to right, var(--ov-ev) 0 var(--seg), var(--ov-shot) var(--seg) 100%);
+}
+/* 柱顶的蓝帽 = 那一格里有「首次游玩」，也就是开了新游戏——十年里最值得跳过去的点 */
+.ov-bar.fresh::after { content: ''; position: absolute; background: var(--accent); border-radius: 1px; }
+#timeline-body[data-orient="h"] .ov-bar.fresh::after { left: 0; right: 0; top: -3px; height: 2px; }
+#timeline-body[data-orient="v"] .ov-bar.fresh::after { top: 0; bottom: 0; right: -3px; width: 2px; }
+
+.ov-axes { position: absolute; inset: 0; pointer-events: none; }
+.ov-year, .ov-quarter, .ov-today, .ov-cursor { position: absolute; }
+#timeline-body[data-orient="h"] .ov-year,
+#timeline-body[data-orient="h"] .ov-quarter,
+#timeline-body[data-orient="h"] .ov-today,
+#timeline-body[data-orient="h"] .ov-cursor { left: var(--at); top: 0; bottom: 0; width: 1px; }
+#timeline-body[data-orient="v"] .ov-year,
+#timeline-body[data-orient="v"] .ov-quarter,
+#timeline-body[data-orient="v"] .ov-today,
+#timeline-body[data-orient="v"] .ov-cursor { top: var(--at); left: 0; right: 0; height: 1px; }
+.ov-year { background: rgba(15, 23, 42, .12); }
+/* 季度细线只在 domain 短于三年时才出（见 overview.js）：十年跨度下它会密得看不清 */
+.ov-quarter { background: rgba(15, 23, 42, .05); }
+.ov-today { background: var(--accent); opacity: .5; }
+.ov-cursor { background: rgba(23, 32, 46, .38); pointer-events: none; z-index: 2; }
+.ov-ylabel {
+  position: absolute; font-size: 9px; letter-spacing: .08em; color: var(--text-muted);
+  pointer-events: none; white-space: nowrap;
+}
+#timeline-body[data-orient="h"] .ov-ylabel { left: var(--at); top: 4px; transform: translateX(4px); }
+#timeline-body[data-orient="v"] .ov-ylabel { top: var(--at); right: 4px; transform: translateY(2px); }
+
+.ov-tip {
+  position: absolute; z-index: 13; pointer-events: none;
+  padding: 5px 10px; border-radius: 8px; white-space: nowrap;
+  background: rgba(23, 32, 46, .92); color: #fff;
+  font-size: 10.5px; letter-spacing: .04em; line-height: 1.4;
+}
+.ov-win {
+  position: absolute; border-radius: 10px; pointer-events: none;
+  background: rgba(47, 107, 255, .10); box-shadow: inset 0 0 0 1.5px rgba(47, 107, 255, .55);
+}
+#timeline-body[data-orient="h"] .ov-win { left: var(--at); width: var(--w); top: 0; bottom: 0; }
+#timeline-body[data-orient="v"] .ov-win { top: var(--at); height: var(--w); left: 0; right: 0; }
+
+/* ---- 中键自动滚动的锚点（07§4.6b）----
+   浏览器自带那套只对真正会滚的页面生效，这条轴是 transform 虚拟滚动，所以自己画一个。
+   形状沿用原生的语汇：一个圆 + 指向可滚方向的两枚箭头，中间一个点。 */
+.autoscroll-anchor {
+  position: absolute; z-index: 80; pointer-events: none;
+  width: 34px; height: 34px; margin: -17px 0 0 -17px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; gap: 1px;
+  color: var(--text-2);
+  background: rgba(255, 255, 255, .82); backdrop-filter: blur(6px);
+  box-shadow: 0 2px 10px rgba(15, 23, 42, .18), inset 0 0 0 1px var(--glass-border);
+}
+.autoscroll-anchor i { width: 3px; height: 3px; border-radius: 50%; background: var(--text-2); }
+/* 竖排时整枚锚点转 90°，箭头就指向上下 —— 一份 DOM 两个方向 */
+#timeline-body[data-orient="v"] .autoscroll-anchor { transform: rotate(90deg); }
+/* 自动滚动期间不要有别的光标语义（缩略图的 zoom-in、命中区的 pointer）来抢戏 */
+#timeline-body.autoscrolling, #timeline-body.autoscrolling * { cursor: all-scroll !important; }
+
+/* ---- 悬浮 panel（07§4.8） ---- */
+.hover-panel {
+  position: absolute; z-index: 60; width: 320px; background: #FFFFFF; border: 1px solid rgba(15, 23, 42, .06);
+  border-radius: var(--r-panel); box-shadow: 0 12px 32px rgba(15, 23, 42, .16); padding: 14px;
+  display: flex; gap: 12px; opacity: 0; transform: translateY(4px); pointer-events: none;
+  transition: opacity .12s ease, transform .12s ease;
+  /* 底图那层是绝对定位的，要按面板圆角裁掉四角 */
+  overflow: hidden;
+}
+/* 游戏形态的横版头图当面板底（07§4.8 v3.19）。
+   洗白的 .86 是**算出来的**，和 #page-backdrop 的 .88 同一套算法：底图最坏是一张纯黑图，
+   洗白后等效底色 = 0.14×0 + 0.86×255 ≈ 219。正文 --text-1 在它上面实算 ~10:1，最淡的
+   caption（--text-3，50% 墨）也还有 3.1:1，压着 05§3.4 的「≥ 3:1」过线。**调低这个值 =
+   直接作废那条验算**。inset 负值把模糊的羽化推到面板外，否则四边会露出一圈没模糊的硬边。 */
+.hover-panel .hp-bg {
+  position: absolute; inset: -8px; z-index: 0; pointer-events: none;
+  background-size: cover; background-position: center; background-repeat: no-repeat;
+  filter: blur(6px) saturate(1.05);
+}
+.hover-panel .hp-bg::after { content: ''; position: absolute; inset: 0; background: rgba(255, 255, 255, .86); }
+/* 底图在最底层，其余内容一律抬到它上面（默认 static 的元素不受 z-index 影响，得先给定位） */
+.hover-panel.has-wide-bg > *:not(.hp-bg) { position: relative; z-index: 1; }
+.hover-panel.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+/* 两种形态的高度是 07§4.8 的定案值，按它预留：成就明细异步到达时面板不会在光标底下
+   自己长高一截（既抖，又会把已经算好的居中位置挪走）。 */
+.hover-panel.form-game { min-height: 186px; }
+.hover-panel.form-achievement { min-height: 269px; }
+.hover-panel .cover { width: 96px; height: 144px; border-radius: var(--r-cover); flex: none; }
+.hover-panel .cover.small { width: 46px; height: 69px; }
+.hover-panel .right-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 10px; padding-top: 2px; min-width: 0; }
+.hover-panel .head-line { display: flex; align-items: baseline; gap: 6px; }
+.hover-panel .head-line .shelved-tag { font-size: 11px; line-height: 1.5; color: var(--text-3); }
+.hover-panel .rows { display: flex; flex-direction: column; gap: var(--sp-8); }
+.hover-panel .event-row { display: flex; align-items: center; gap: 4px; }
+.hover-panel .event-row .spacer { flex: 1 1 auto; }
+.hover-panel .page-dots { display: flex; gap: var(--sp-6); justify-content: center; margin-top: 8px; }
+.hover-panel .page-dots .pd { width: 6px; height: 6px; border-radius: 50%; background: rgba(15, 23, 42, .18); }
+.hover-panel .page-dots .pd.cur { background: var(--accent); }
+
+.ach-header { display: flex; align-items: center; gap: var(--sp-8); height: 69px; }
+.ach-row { height: 40px; display: flex; align-items: center; gap: var(--sp-8); }
+.ach-row .icon { width: 32px; height: 32px; flex: 0 0 32px; border-radius: var(--r-ach-icon); box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .14); }
+.ach-row .name { flex: 1 1 auto; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* ---- 全屏替换页（设置 / 首启） ---- */
+.page-topbar { position: absolute; left: var(--safe-x); top: 0; height: var(--header-h); display: flex; align-items: center; gap: 14px; }
+.page-col { position: absolute; left: 50%; transform: translateX(-50%); width: 640px; display: flex; flex-direction: column; gap: var(--sp-24); }
+.settings-group { display: flex; flex-direction: column; gap: var(--sp-8); }
+.settings-group .label { padding-left: var(--sp-4); }
+.settings-group .rows { display: flex; flex-direction: column; gap: var(--sp-8); }
+.list-row .main-col { flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.avatar { width: 44px; height: 44px; flex: 0 0 44px; border-radius: 14px; background: rgba(15, 23, 42, .06); box-shadow: inset 0 0 0 .5px rgba(15, 23, 42, .10); }
+
+.hero { position: absolute; left: 50%; top: 210px; transform: translateX(-50%); width: 640px; display: flex; flex-direction: column; gap: 20px; }
+.hero .product-name { font-size: 54px; line-height: .92; font-weight: 600; letter-spacing: -.02em; }
+.hero .desc { font-size: 13.5px; font-weight: 500; line-height: 1.8; color: var(--text-2); max-width: 520px; }
+.hero .actions { display: flex; align-items: center; gap: var(--sp-12); }
+
+/* ---- 环境标识与 MOCK 入口（两套环境并行） ---- */
+.mode-badge {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10.5px; letter-spacing: .10em; line-height: 1;
+  padding: 4px 8px; border-radius: var(--r-pill); flex: none;
+  background: rgba(47, 107, 255, .12); color: var(--accent);
+}
+.mode-badge.mock { background: rgba(15, 23, 42, .06); color: var(--text-2); }
+
+.mode-card {
+  border-radius: var(--r-panel); background: rgba(255, 255, 255, .24);
+  border: 1px solid var(--glass-border); padding: 14px 16px;
+  display: flex; flex-direction: column; gap: var(--sp-8); max-width: 520px;
+}
+.mode-card-head { display: flex; align-items: center; gap: var(--sp-8); }
+.mode-card-row { display: flex; align-items: center; gap: var(--sp-16); }
+.mode-card-row .caption { flex: 1 1 auto; }
+
+.entry-error {
+  max-width: 520px; padding: 10px 12px; border-radius: 10px; white-space: pre-line;
+  background: rgba(163, 48, 85, .08); color: #A33055;
+  box-shadow: inset 0 0 0 .5px rgba(163, 48, 85, .20);
+}
+
+.token-form { display: flex; flex-direction: column; gap: var(--sp-8); max-width: 520px; }
+.text-input {
+  height: 38px; padding: 0 12px; font-size: 12px;
+  border-radius: 10px; border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, .45); color: var(--text-1);
+}
+.text-input:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+/* 链接借按钮皮：首启页「去 Steam 申请 API Key」是个 <a>，得开新标签、还得长得像同排的按钮 */
+a.btn-secondary { display: inline-flex; align-items: center; text-decoration: none; width: fit-content; }
+
+/* 设置页 API Key 行：帮助链接 + 紧凑输入框 + 绑定 / 解绑，横向一排 */
+.apikey-form { display: flex; align-items: center; gap: var(--sp-8); flex: none; }
+.apikey-form a { color: var(--accent); text-decoration: none; }
+.apikey-form a:hover { text-decoration: underline; }
+.text-input.compact { height: 30px; width: 200px; font-size: 11.5px; }
+
+.sync-wrap { display: flex; flex-direction: column; gap: var(--sp-12); max-width: 640px; }
+.sync-row { display: flex; align-items: center; gap: 10px; }
+
+/* ---- 同步活跃指示（05§7）----
+   首次同步要跑几十分钟，而后端只有 owned_games 阶段每 10 款推一次进度，
+   achievements / screenshots 全程静默、只在结束时推一次 done——那几分钟里进度条
+   一动不动，和卡死没有观感区别。所以给两个与「具体进度」无关、但只要链路活着
+   就一定在动的信号：斜纹持续流动 + 条尾推进头呼吸（外加每秒走一格的 ELAPSED）。
+   关键在于**它们会停**：同步报错时加 .stalled，动画立刻停住并转灰。
+   一个永远在动的装饰动画什么也没说；会停的动画才是信号。 */
+.sync-bar { position: relative; height: 5px; border-radius: var(--r-pill); background: rgba(15, 23, 42, .10); }
+.sync-bar .fill {
+  position: relative; height: 5px; border-radius: var(--r-pill); background: var(--accent);
+  overflow: hidden; transition: width .4s ease-out;
+}
+.sync-bar .fill::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(115deg, rgba(255, 255, 255, .34) 0 6px, rgba(255, 255, 255, 0) 6px 14px);
+  background-size: 28px 100%;
+  animation: sync-flow 1.1s linear infinite;
+}
+/* 推进头：fill 很窄时斜纹几乎看不见，靠它保证「在动」永远可见 */
+.sync-bar .head {
+  position: absolute; top: -2px; width: 2px; height: 9px; border-radius: 1px;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px rgba(47, 107, 255, .16), 0 0 10px rgba(47, 107, 255, .55);
+  transition: left .4s ease-out;
+  animation: sync-pulse 1.6s ease-in-out infinite;
+}
+@keyframes sync-flow { to { background-position: 28px 0; } }
+@keyframes sync-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .42; } }
+.sync-bar.stalled .fill { background: var(--text-3); }
+.sync-bar.stalled .fill::after { animation: none; opacity: 0; }
+.sync-bar.stalled .head { animation: none; background: var(--text-3); box-shadow: none; }
+
+.sync-meta { display: flex; align-items: center; gap: 14px; }
+.sync-stages { display: flex; gap: 14px; flex: 1 1 auto; min-width: 0; }
+.sync-stages .label.done { color: var(--text-1); }
+.sync-stages .label.pending { color: rgba(23, 32, 46, .50); }
+.sync-elapsed { white-space: nowrap; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hover-panel, .toggle::after, .sync-bar .fill { transition-duration: 120ms !important; }
+  /* 活跃指示的两个循环动画停掉；ELAPSED 每秒变一次文字，仍然说明链路还活着 */
+  .sync-bar .fill::after, .sync-bar .head { animation: none; }
+}
+
+/* ---- 封面轮播（07 V1）：面板封面是一条可滚的轨道 ---- */
+.cover-frame {
+  position: relative; overflow: hidden; cursor: zoom-in; outline: none; flex: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.cover-frame:hover { box-shadow: 0 0 0 1.5px rgba(23, 32, 46, .28), 0 6px 14px rgba(23, 32, 46, .12); }
+.cover-frame:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.cover-track { display: flex; height: 100%; transition: transform .38s cubic-bezier(.22, .76, .24, 1); will-change: transform; }
+.cover-slide { flex: 0 0 auto; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+/* 轮播里的标签现在只在**没有真图**时出现，写的是完整游戏名（见 lib/cover.js::coverVariants）。
+   所以它不再是一个两字母的角标，得能换行、能截断，也得在任意主题色上读得出来。 */
+.cover-slide .num {
+  color: #fff; font-weight: 650; max-width: 100%; text-align: center; line-height: 1.24;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4; overflow: hidden;
+  word-break: break-word; text-shadow: 0 1px 2px rgba(0, 0, 0, .55), 0 0 10px rgba(0, 0, 0, .35);
+}
+.cover-dots { display: flex; gap: var(--sp-6); justify-content: center; margin-top: 8px; }
+.cdot { width: 6px; height: 6px; border-radius: 50%; background: rgba(15, 23, 42, .18); transition: background .2s ease; }
+.cdot.on { background: var(--accent); }
+.cover-chip {
+  position: absolute; top: 2px; right: 2px; padding: 0 4px; border-radius: 5px;
+  background: rgba(23, 32, 46, .62); color: #fff; pointer-events: none;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 8px; line-height: 1.7; letter-spacing: .05em;
+}
+
+/* ---- 封面放大灯箱（07 V1）---- */
+.lb {
+  position: fixed; inset: 0; z-index: 999; display: none; align-items: center; justify-content: center;
+  background: rgba(23, 32, 46, .36); backdrop-filter: blur(7px); -webkit-backdrop-filter: blur(7px);
+}
+.lb.open { display: flex; }
+.lb-card {
+  display: flex; flex-direction: column; align-items: center; gap: 14px;
+  opacity: 0; transform: scale(.94) translateY(8px);
+  transition: opacity .22s ease, transform .26s cubic-bezier(.2, .8, .25, 1);
+}
+.lb.open .lb-card { opacity: 1; transform: none; }
+/* 舞台尺寸随当前这张素材的比例变（竖版海报 / 横版头图），所以宽高也要有过渡，
+   否则翻页时会「啪」地跳一下 */
+.lb-stage {
+  position: relative; overflow: hidden; border-radius: 14px;
+  box-shadow: 0 26px 70px rgba(15, 23, 42, .38);
+  transition: width .32s cubic-bezier(.22, .76, .24, 1), height .32s cubic-bezier(.22, .76, .24, 1);
+}
+.lb-track { display: flex; width: 100%; height: 100%; transition: transform .4s cubic-bezier(.22, .76, .24, 1); will-change: transform; }
+/* flex 基准改成 100%：舞台宽度会变，写死像素宽的话翻页位移就对不上了 */
+.lb-slide { position: relative; flex: 0 0 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; padding-bottom: 30px; background-size: cover; background-position: center; }
+/* 加载态必须显式：CSS 背景图加载失败是静默的，画面上「还在加载」和「加载失败」长得一模一样 */
+.lb-state {
+  position: absolute; left: 0; right: 0; top: 50%; transform: translateY(-50%);
+  text-align: center; font-size: 11.5px; letter-spacing: .08em;
+  color: rgba(255, 255, 255, .94); text-shadow: 0 1px 8px rgba(15, 23, 42, .55);
+}
+.lb-state.fail { color: #FFDCE4; }
+/* 同 .cover-slide .num：标签只在没有真图时出现，且已从 2 字母缩写改成完整游戏名。
+   原来的 46px 是给「TW」这种两个字准备的，一个完整名字会横着顶穿舞台。 */
+.lb-slide .t {
+  font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 26px; font-weight: 600;
+  letter-spacing: .01em; color: rgba(255, 255, 255, .95); max-width: 76%; text-align: center;
+  line-height: 1.22; text-shadow: 0 2px 10px rgba(0, 0, 0, .45);
+}
+.lb-close {
+  position: absolute; top: 20px; right: 20px; width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255, 255, 255, .92); border: 1px solid rgba(15, 23, 42, .08); color: var(--text-1);
+  display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 2;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, .14); transition: background .16s ease;
+}
+.lb-close:hover { background: var(--accent); color: #fff; }
+.lb-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+.lb-zone {
+  position: absolute; top: 0; bottom: 0; width: 33vw; min-width: 200px; max-width: 528px;
+  display: flex; align-items: center; border: 0; padding: 0; cursor: pointer;
+  color: #fff; z-index: 1; background: transparent; transition: background .2s ease;
+}
+.lb-zone[data-dir="prev"] { left: 0; justify-content: flex-end; padding-right: 34px; }
+.lb-zone[data-dir="next"] { right: 0; justify-content: flex-start; padding-left: 34px; }
+.lb-zone[data-dir="prev"]:hover, .lb-zone[data-dir="prev"]:focus-visible { background: linear-gradient(90deg, rgba(23, 32, 46, .20), rgba(23, 32, 46, 0) 82%); }
+.lb-zone[data-dir="next"]:hover, .lb-zone[data-dir="next"]:focus-visible { background: linear-gradient(270deg, rgba(23, 32, 46, .20), rgba(23, 32, 46, 0) 82%); }
+.lb-zone:focus-visible { outline: 2px solid #fff; outline-offset: -2px; }
+.lb-zone .zb {
+  width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  background: rgba(255, 255, 255, .16);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .36), 0 8px 22px rgba(15, 23, 42, .24);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  opacity: 0; transform: scale(.82);
+  transition: opacity .18s ease, transform .2s cubic-bezier(.2, .8, .25, 1), background .16s ease;
+}
+.lb-zone:hover .zb, .lb-zone:focus-visible .zb { opacity: 1; transform: none; background: rgba(255, 255, 255, .30); }
+.lb-actions { display: flex; gap: var(--sp-8); }
+.lb-actions[hidden] { display: none; }
+.lb-action {
+  height: 30px; padding: 0 14px; border-radius: var(--r-pill); cursor: pointer;
+  border: 1px solid rgba(255, 255, 255, .38); background: rgba(255, 255, 255, .16); color: #fff;
+  font-family: 'Noto Sans SC', 'Microsoft YaHei UI', 'Segoe UI', system-ui, sans-serif;
+  font-size: 12.5px; font-weight: 500;
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: background .16s ease, color .16s ease;
+}
+.lb-action:hover { background: rgba(255, 255, 255, .32); }
+.lb-action.on { background: #fff; color: var(--text-1); border-color: #fff; }
+.lb-action:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.lb-meta { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.lb-meta .cdot { background: rgba(255, 255, 255, .38); }
+.lb-meta .cdot.on { background: #fff; }
+.lb-hint {
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  font-size: 11px; letter-spacing: .06em; color: rgba(255, 255, 255, .85);
+}
+
+/* ---- 粗粒度缩放下：逐 ICON 命中区 + 「仅日期」读数条（07§4.8a）---- */
+.df-hit {
+  position: absolute; z-index: 46;
+  border: 0; padding: 0; background: transparent; border-radius: 50%; cursor: pointer;
+}
+#timeline-body[data-orient="h"] .df-hit { height: 40px; transform: translateX(-50%); }
+#timeline-body[data-orient="v"] .df-hit { width: 40px; transform: translateY(-50%); }
+.df-hit:focus-visible { outline: 1.5px solid var(--accent); outline-offset: 2px; }
+/* 截图图标是可点的（点开看那批截图），给个放大镜光标把这件事说出来——
+   其它 df-hit 点开的是日期读数，语义不同，光标也就不同 */
+.df-hit.shot-hit { cursor: zoom-in; }
+
+/* ---- 跨轴交错：整组换到轴的另一侧（07§4.2h）----
+   换边只有两件事：**反向 flex**（DOM 顺序一个字不改，[媒体][图标][引线] 自然倒成
+   [引线][图标][媒体]，引线仍然贴着轴）+ **反向 transform**（不再往回退一整个身位）。
+   剩下的都是把「朝轴的那一面」从下改成上：内边距、外边距、对齐、引线的渐隐方向。 */
+#timeline-body[data-orient="h"] .event-group[data-side="1"] {
+  flex-direction: column-reverse; transform: translate(-50%, 0);
+}
+#timeline-body[data-orient="v"] .event-group[data-side="1"] {
+  flex-direction: row-reverse; transform: translate(0, -50%);
+}
+/* 色点仍要朝轴：横排改成朝上，竖排改成朝左 */
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .event-units {
+  align-items: flex-start; padding-bottom: 0; padding-top: 7px;
+}
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .event-units {
+  align-items: flex-start; padding-right: 0; padding-left: 7px;
+}
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .event-unit { flex-direction: column-reverse; }
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .event-unit { flex-direction: row-reverse; }
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .event-unit .icon-row {
+  margin-bottom: 0; margin-top: 5px;
+}
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .event-unit .icon-row {
+  margin-right: 0; margin-left: 5px;
+}
+.event-group[data-side="1"] .event-plus { align-self: flex-start; }
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .event-plus { padding-bottom: 0; padding-top: 2px; }
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .event-plus { padding-right: 0; padding-left: 2px; }
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .shelved-cap { margin-bottom: 0; margin-top: 4px; }
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .shelved-cap { margin-right: 0; margin-left: 4px; }
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .media-band {
+  align-items: flex-start; margin-bottom: 0; margin-top: 8px;
+}
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .media-band {
+  align-items: flex-start; margin-right: 0; margin-left: 8px;
+}
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .fp-covers { align-items: flex-start; }
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .fp-covers { align-items: flex-start; }
+/* 引线的渐隐要**朝轴**那一头淡出，换边之后渐变方向跟着倒过来，否则实线会啃到日期带 */
+#timeline-body[data-orient="h"] .event-group[data-side="1"] .stem-line {
+  -webkit-mask-image: linear-gradient(0deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+  mask-image: linear-gradient(0deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+}
+#timeline-body[data-orient="v"] .event-group[data-side="1"] .stem-line {
+  -webkit-mask-image: linear-gradient(270deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+  mask-image: linear-gradient(270deg, #000 0 52%, rgba(0, 0, 0, .26) 80%, transparent 100%);
+}
+/* v3.9 移除：粗粒度缩放下「点 ICON 出日期读数」的读数条（.readout / .stem-drop）。
+   它给的信息是悬浮面板的真子集，却自带一条引线与该组的 .stem-line 并排——
+   同一个时点被两条线指着。理由见 timeline.js::renderGroup 里逐 ICON 点击层的注释。 */
+
+
+/* ---- 首启页补充（V1 原型）---- */
+.hero .entry-meta { padding-left: var(--sp-4); }
+.hero.fading { opacity: 0; }
+.hero { transition: opacity .22s ease; }
+.sync-stages .label { transition: color .2s ease; }
+.sync-stages .label.done { color: var(--text-1); }
+.sync-stages .label.pending { color: rgba(23, 32, 46, .50); }
+
+/* ---- 导出长图面板（07§4.11）----
+   与灯箱（.lb）同一套「盖住整页的模态」语汇，只是卡片是浅色的：灯箱要把封面从页面里
+   拎出来所以压深底，这里是一张要读的表单，压深了反而看不清字。 */
+.exp {
+  position: fixed; inset: 0; z-index: 998; display: none;
+  align-items: center; justify-content: center;
+  background: rgba(23, 32, 46, .28); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+}
+.exp.open { display: flex; }
+.exp-card {
+  position: relative; width: 420px; max-width: calc(100vw - 48px);
+  display: flex; flex-direction: column; gap: var(--sp-12);
+  padding: 22px; border-radius: var(--r-panel);
+  background: #FFFFFF; border: 1px solid rgba(15, 23, 42, .06);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, .22);
+}
+/* 导出中整张卡片按住不动：这一段里点什么都没用（活已经在跑了），
+   与其让按钮看着能点其实不响应，不如把这件事画出来 */
+.exp-card.busy { cursor: progress; }
+.exp-close {
+  position: absolute; right: 14px; top: 14px; width: 26px; height: 26px; padding: 0;
+  border-radius: 50%; border: 1px solid var(--glass-border); background: transparent;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--text-3); cursor: pointer;
+}
+.exp-close:hover { background: var(--hover); color: var(--text-1); }
+.exp-close:disabled { opacity: .4; cursor: default; }
+
+.exp-row { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-12); }
+.exp-segs { display: flex; gap: var(--sp-4); padding: 3px; border-radius: var(--r-pill); background: var(--hover); }
+.exp-seg {
+  min-width: 62px; height: 28px; padding: 0 14px; border: 0; border-radius: var(--r-pill);
+  background: transparent; color: var(--text-2); font-size: 12.5px; cursor: pointer;
+  transition: background .14s ease, color .14s ease;
+}
+.exp-seg:hover { color: var(--text-1); }
+.exp-seg.on { background: #FFFFFF; color: var(--text-1); box-shadow: 0 1px 3px rgba(15, 23, 42, .12); }
+.exp-seg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.exp-seg:disabled { color: var(--text-muted); cursor: default; }
+/* 起始年下拉与分段按钮同排：外形按分段按钮的胶囊走，别让原生控件在一排圆角里突兀 */
+.exp-select {
+  height: 28px; padding: 0 10px; border-radius: var(--r-pill); border: 0;
+  background: #FFFFFF; color: var(--text-1); font-size: 12.5px; cursor: pointer;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, .12);
+}
+.exp-select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.exp-select:disabled { color: var(--text-muted); cursor: default; }
+
+.exp-rules { padding-top: var(--sp-4); border-top: 1px solid var(--divider); }
+/* 尺寸是这张面板上最该被一眼看到的数：几千还是几万像素决定了要不要现在导 */
+.exp-size { font-size: 13px; color: var(--text-1); font-variant-numeric: tabular-nums; }
+.exp-note { color: var(--text-muted); }
+.exp-status { min-height: 17px; color: var(--text-2); font-variant-numeric: tabular-nums; }
+.exp-status.fail { color: #B4232F; }
+.exp-foot { display: flex; justify-content: flex-end; gap: var(--sp-8); }
+.exp-foot .btn-primary, .exp-foot .btn-secondary { height: 36px; padding: 0 18px; }

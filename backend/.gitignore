@@ -1,0 +1,37 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 环境与密钥（绝不提交）
+.env
+*.local.env
+fernet.key
+
+# 本地数据库（SQLite 开发默认）。WAL 模式下旁边还有 -wal / -shm 两个文件，一并忽略。
+*.db
+*.db-wal
+*.db-shm
+*.db-journal
+*.sqlite3
+*.sqlite3-*
+
+# 侧车依赖
+sidecar/node_modules/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# 系统
+.DS_Store
+Thumbs.db

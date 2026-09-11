@@ -1,0 +1,44 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg-fallback:#EEF1F6; --panel-ref:#F2F4F8; --accent:#2F6BFF; --accent-ink:#FFFFFF;
+      --divider:rgba(15,23,42,.08); --hover:rgba(15,23,42,.05);
+      --text-1:#17202E; --text-2:rgba(23,32,46,.62); --text-3:rgba(23,32,46,.50); --text-muted:rgba(23,32,46,.30);
+      --ev-release:#2F6BFF; --ev-purchase:#0E9E68; --ev-achieve-fallback:#6D4AE0;
+      --axis:rgba(15,23,42,.16); --stem:rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;width:1440px;height:900px;background:var(--bg-fallback);color:var(--text-1);
+      font-family:"Noto Sans SC","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+    a{color:#2F6BFF;} a:hover{color:#1B4FD8;}
+    .num{font-family:"Space Grotesk",system-ui,sans-serif;}
+    .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;}
+    .label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .dot{width:6px;height:6px;border-radius:50%;box-shadow:inset 0 0 0 .5px rgba(15,23,42,.14);}
+    .iconbtn{width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.30);
+      border:1px solid rgba(15,23,42,.10);box-shadow:inset 0 1px 0 rgba(255,255,255,.90);
+      display:flex;align-items:center;justify-content:center;color:var(--text-2);}
+    .seg{height:30px;border-radius:999px;background:rgba(255,255,255,.30);border:1px solid rgba(15,23,42,.10);
+      box-shadow:inset 0 1px 0 rgba(255,255,255,.90);display:flex;align-items:center;padding:2px;gap:2px;}
+    .seg>div{height:24px;padding:0 15px;border-radius:999px;display:flex;align-items:center;
+      font-size:13.5px;font-weight:500;color:var(--text-2);}
+    .seg>div.on{background:var(--accent);color:var(--accent-ink);box-shadow:0 2px 8px rgba(47,107,255,.30);}
+    .shot{width:96px;height:54px;border-radius:8px;box-shadow:inset 0 0 0 .5px rgba(15,23,42,.14);}
+    .axis{position:absolute;left:0;right:0;top:480px;height:1px;background:var(--axis);}
+    .mid{position:absolute;left:720px;top:96px;bottom:34px;width:1px;background:rgba(15,23,42,.05);}
+  </style>
+</helmet>
+<div style="position:relative;width:1440px;height:900px;overflow:hidden;"><div style="position:absolute;left:400px;top:300px;width:640px;display:flex;flex-direction:column;gap:22px;"><div class="num" style="font-size:54px;line-height:.92;font-weight:600;letter-spacing:-.02em;">GAME_C</div><div style="font-size:13.5px;font-weight:500;line-height:1.8;color:var(--text-2);max-width:520px;">登录 Steam 后，购买、首次启动、成就解锁与当时的截图会落在同一条时间轴上。数据留在本机。</div><div style="display:flex;align-items:center;gap:12px;"><div style="height:44px;border-radius:999px;padding:0 22px;background:var(--accent);color:var(--accent-ink);font-size:13.5px;font-weight:500;display:flex;align-items:center;gap:8px;box-shadow:0 6px 20px rgba(47,107,255,.30),inset 0 1px 0 rgba(255,255,255,.40);">登录 Steam</div><div class="iconbtn" style="width:auto;height:30px;border-radius:999px;padding:0 14px;font-size:13.5px;font-weight:500;color:var(--text-1);">导入本地备份</div></div></div></div></x-dc>
+</body>
+</html>

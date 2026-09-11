@@ -1,0 +1,140 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+SC:wght@400;500&display=swap">
+  <style>
+    :root{
+      --bg-fallback:#EEF1F6; --panel-ref:#F2F4F8; --accent:#2F6BFF; --accent-ink:#FFFFFF;
+      --divider:rgba(15,23,42,.08); --hover:rgba(15,23,42,.05);
+      --text-1:#17202E; --text-2:rgba(23,32,46,.62); --text-3:rgba(23,32,46,.50); --text-muted:rgba(23,32,46,.30);
+      --ev-release:#2F6BFF; --ev-purchase:#0E9E68; --ev-achieve-fallback:#6D4AE0;
+      --axis:rgba(15,23,42,.16); --stem:rgba(15,23,42,.14);
+    }
+    *{box-sizing:border-box;}
+    body{margin:0;width:1440px;height:900px;background:var(--bg-fallback);color:var(--text-1);
+      font-family:"Noto Sans SC","Microsoft YaHei UI","Segoe UI",system-ui,sans-serif;
+      -webkit-font-smoothing:antialiased;}
+    a{color:#2F6BFF;text-decoration:none;} a:hover{color:#1B4FD8;}
+    .num{font-family:"Space Grotesk",system-ui,sans-serif;}
+    .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;}
+    .label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .caption{font-size:11px;line-height:1.5;font-weight:400;color:var(--text-3);}
+    .body-text{font-size:13.5px;line-height:1.5;font-weight:500;}
+    .board-label{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:10.5px;letter-spacing:.10em;
+      text-transform:uppercase;color:var(--text-3);}
+    .panel{position:absolute;top:196px;width:320px;background:#FFFFFF;border:1px solid rgba(15,23,42,.06);
+      border-radius:18px;box-shadow:0 12px 32px rgba(15,23,42,.16);padding:14px;}
+    .panel.row{display:flex;gap:12px;}
+    .divider{height:1px;background:var(--divider);}
+    .ach-head{display:flex;align-items:center;gap:8px;height:69px;}
+    .cvr-sm{width:46px;height:69px;flex:0 0 46px;border-radius:8px;position:relative;overflow:hidden;
+      display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;
+      box-shadow:inset 0 0 0 .5px rgba(15,23,42,.12);}
+    .cvr-sm .num{font-size:11px;font-weight:600;color:rgba(255,255,255,.94);}
+    .chip{position:absolute;top:2px;right:2px;padding:0 4px;border-radius:5px;background:rgba(23,32,46,.62);color:#fff;
+      font-family:"JetBrains Mono",ui-monospace,monospace;font-size:8px;line-height:1.7;letter-spacing:.05em;}
+    .cvr-lg{width:96px;height:144px;border-radius:10px;display:flex;align-items:flex-end;justify-content:center;
+      padding-bottom:6px;box-shadow:inset 0 0 0 .5px rgba(15,23,42,.12);}
+    .cvr-lg .num{font-size:13px;font-weight:600;color:rgba(255,255,255,.94);}
+    .cover-dots{display:flex;gap:6px;justify-content:center;margin-top:8px;}
+    .cdot{width:6px;height:6px;border-radius:50%;background:rgba(15,23,42,.18);}
+    .cdot.on{background:var(--accent);}
+    .foot{display:flex;align-items:center;justify-content:space-between;padding-top:2px;}
+    .foot span{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:9px;color:var(--text-3);}
+    .ev-row{display:flex;align-items:center;gap:4px;}
+    /* 时刻未回填时这一格是空的，不是骨架动画——它可能永远填不上（后端没这条记录） */
+    .ts-empty{width:34px;height:11px;border-radius:3px;background:rgba(15,23,42,.06);}
+  </style>
+</helmet>
+<div style="position:relative;width:1440px;height:900px;overflow:hidden;">
+
+  <div class="board-label" style="position:absolute;left:40px;top:96px;">面板附加态 &#183; 明细是懒加载的，这几种中间态必然会被看见</div>
+  <div class="caption" style="position:absolute;left:40px;top:118px;width:1000px;line-height:1.7;">成就明细走 /achievements 懒加载，事件时刻走 /calendar/day 回填 —— 两者都在面板出现之后才到，所以「加载中 / 失败 / 空」以及「时刻位留空」都是常态，不是异常分支。</div>
+
+  <div class="board-label" style="position:absolute;left:40px;top:170px;">STATE &#183; 成就明细加载中</div>
+  <div class="panel" data-od-id="ach-loading" style="left:40px;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="ach-head">
+        <div class="cvr-sm" style="background:linear-gradient(150deg,#A77FB5,#7A3E8F);"><span class="num">CEL</span><span class="chip">1/3</span></div>
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+          <div class="body-text">Celeste</div>
+          <div class="mono caption">2026-08-19</div>
+        </div>
+        <div style="flex:1 1 auto;"></div>
+        <div style="display:flex;align-items:center;gap:3px;color:#7A3E8F;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#7A3E8F;">&#215;5</span></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;flex-direction:column;gap:6px;"><div class="caption">加载成就明细…</div></div>
+      <div class="foot"><span>全球解锁率</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="board-label" style="position:absolute;left:386px;top:170px;">STATE &#183; 成就明细加载失败</div>
+  <div class="panel" data-od-id="ach-failed" style="left:386px;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="ach-head">
+        <div class="cvr-sm" style="background:linear-gradient(150deg,#97BD85,#3E7A34);"><span class="num">SV</span><span class="chip">2/3</span></div>
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+          <div class="body-text">Stardew Valley</div>
+          <div class="mono caption">2026-07-06</div>
+        </div>
+        <div style="flex:1 1 auto;"></div>
+        <div style="display:flex;align-items:center;gap:3px;color:#3E7A34;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#3E7A34;">&#215;6</span></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;flex-direction:column;gap:6px;"><div class="caption">成就明细加载失败</div></div>
+      <div class="foot"><span>全球解锁率</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="board-label" style="position:absolute;left:732px;top:170px;">STATE &#183; 当日无成就明细</div>
+  <div class="panel" data-od-id="ach-empty" style="left:732px;">
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div class="ach-head">
+        <div class="cvr-sm" style="background:linear-gradient(150deg,#C97892,#A33055);"><span class="num">HAD</span><span class="chip">3/3</span></div>
+        <div style="display:flex;flex-direction:column;gap:3px;min-width:0;">
+          <div class="body-text">Hades</div>
+          <div class="mono caption">2026-08-27</div>
+        </div>
+        <div style="flex:1 1 auto;"></div>
+        <div style="display:flex;align-items:center;gap:3px;color:#A33055;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#A33055;">&#215;8</span></div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;flex-direction:column;gap:6px;"><div class="caption">当日无成就明细</div></div>
+      <div class="foot"><span>全球解锁率</span><span></span></div>
+    </div>
+  </div>
+
+  <div class="board-label" style="position:absolute;left:1078px;top:170px;">STATE &#183; 事件时刻未回填</div>
+  <div class="panel row" data-od-id="game-no-time" style="left:1078px;">
+    <div style="display:flex;flex-direction:column;flex:none;">
+      <div class="cvr-lg" style="background:linear-gradient(150deg,#7D9BB6,#2E5E8A);"><span class="num">HK</span></div>
+      <div class="cover-dots"><span class="cdot on"></span><span class="cdot"></span><span class="cdot"></span></div>
+    </div>
+    <div style="flex:1 1 auto;display:flex;flex-direction:column;gap:10px;padding-top:2px;min-width:0;">
+      <div style="display:flex;flex-direction:column;gap:3px;">
+        <div class="body-text">Hollow Knight</div>
+        <div class="mono caption">2026-08-21</div>
+      </div>
+      <div class="divider"></div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="ev-row"><div style="display:flex;align-items:center;gap:3px;color:#0E9E68;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9.5" cy="19.5" r="1.3"/><circle cx="17.5" cy="19.5" r="1.3"/><path d="M2.8 4h2.4l2.4 11.1a1.6 1.6 0 0 0 1.6 1.3h7.7a1.6 1.6 0 0 0 1.6-1.3L20.6 8.2H6"/></svg></div><div style="flex:1 1 auto;"></div><div class="ts-empty"></div></div>
+        <div class="ev-row"><div style="display:flex;align-items:center;gap:3px;color:#2E5E8A;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5.4 19 12 8 18.6Z"/></svg></div><div style="flex:1 1 auto;"></div><div class="ts-empty"></div></div>
+        <div class="ev-row"><div style="display:flex;align-items:center;gap:3px;color:#2E5E8A;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.8" cy="12" r="3.7"/><path d="M11.5 12H21"/><path d="M17.6 12v3.1"/><path d="M20.4 12v2.1"/></svg><span class="mono" style="font-size:9px;color:#2E5E8A;">&#215;4</span></div><div style="flex:1 1 auto;"></div><div class="ts-empty"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption" style="position:absolute;left:1078px;top:470px;width:320px;line-height:1.7;">时刻位先留空，/calendar/day 回来后就地填成 HH:MM 并按时间重排；拿不到就一直空着，不弹错也不整块降级。</div>
+
+</div>
+</x-dc>
+</body>
+</html>
