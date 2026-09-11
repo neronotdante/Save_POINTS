@@ -11,6 +11,14 @@
 
 > 这是一个**需要自己搭环境**的项目，不提供安装包。你需要会装 Python、会在终端里跑一条命令。整个流程 10 分钟以内，下面从零开始写。
 
+![横向时间轴主视图](docs/screenshot-landscape.webp)
+
+<p align="center">
+  <img src="docs/screenshot-portrait.webp" width="380" alt="纵向时间轴视图">
+</p>
+
+<p align="center"><sub>上：横向时间轴——游戏封面按购买/游玩日排布，轴下方是当日解锁的成就与截图，悬停看单条明细。<br>下：纵向布局，左侧年份标尺可跨年跳转。</sub></p>
+
 ---
 
 ## 目录
