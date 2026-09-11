@@ -98,22 +98,6 @@ cd backend && .venv\Scripts\activate && game-calendar-bind-apikey
 - 后端只监听 `127.0.0.1`。**没按公网多用户加固，别直接暴露到互联网**——别人能用你的 Key 采你的数据。
 - `game_c.db*`、`fernet.key`、`.env` 不要提交，`.gitignore` 已经挡了。
 
-## 常见问题
-
-**找不到 `py`** — 没装 Python，或装的时候没勾 py launcher。
-
-**8000 打不开** — 多半端口被占，看后端窗口的报错。换端口要同时改三处：`--port`、`.env` 里的 `GC_PUBLIC_BASE_URL` 和 `GC_CORS_ORIGINS`，登录回调依赖前者，不改会回不来。**别用 8080**，Steam 客户端自己占着。
-
-**提示 Steam 拒绝了这个 API Key** — Key 不完整，或者是在别的账号下申请的。
-
-**没有运行记录 / 成就** — Steam 的「游戏详情」隐私不是公开。改了再同步一次。
-
-**没有购买记录** — 购买历史 Steam 不对任何 Key 开放，得用网页会话抓，这条链路没接进界面，默认不采集。空是预期的。
-
-**升级后报错说表或列不存在** — `cd backend && .venv\Scripts\activate && alembic upgrade head`
-
-**想清空重来** — 关掉后端，删 `backend/game_c.db` 和它的 `-wal` / `-shm`，再启动。
-
 ## 开发
 
 ```bash
